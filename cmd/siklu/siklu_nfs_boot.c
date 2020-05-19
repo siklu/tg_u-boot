@@ -109,7 +109,7 @@ setup_nfs_bootargs(const char *rootpath, bool usb) {
 			"%s:%s,tcp,v%s", env_get(ENV_NFS_SERVERIP), rootpath, CONFIG_SIKLU_LINUX_NFS_VERSION);
 	
 	snprintf(ip, sizeof(ip), 
-			"%s:%s:none:%s:%s:%s:none",
+			"%s:%s::%s:%s:%s:none",
 			env_get("ipaddr"), env_get(ENV_NFS_SERVERIP), netmask, CONFIG_SIKLU_NFS_HOSTNAME, nfs_netdev);
 	
 	snprintf(bootargs, sizeof(bootargs), 

@@ -32,6 +32,19 @@ struct led_mdio_priv {
 	u16 val_off;
 };
 
+static enum led_state_t mdio_led_get_state(struct udevice *dev)
+{
+	struct led_mdio_priv *priv = dev_get_priv(dev);
+	int ret = phy_read(priv->phydev, priv->devad, priv->regnum);
+	int val = (ret&priv->reg_mask);
+
+	if (val == priv->val_off)
+		return priv->val_off;
+	else if(val == priv->val_on)
+		return priv->val_on;
+	else
+		return -ENOSYS;
+}
 
 static int mdio_led_set_state(struct udevice *dev, enum led_state_t state)
 {
@@ -57,21 +70,6 @@ static int mdio_led_set_state(struct udevice *dev, enum led_state_t state)
 	return phy_write(priv->phydev, priv->devad, priv->regnum, (ret&(~priv->reg_mask))|regval);
 }
 
-static enum led_state_t mdio_led_get_state(struct udevice *dev)
-{
-	struct led_mdio_priv *priv = dev_get_priv(dev);
-	int ret = phy_read(priv->phydev, priv->devad, priv->regnum);
-
-	switch ((ret&priv->reg_mask)) {
-		case priv->val_off:
-			return LEDST_OFF;
-		case priv->val_on:
-			return LEDST_ON;
-		default:
-			return -ENOSYS;
-	}
-}
-
 struct udevice* led_mdio_create (const char* label, struct phy_device *phydev, int (*pre_write_hook) (struct phy_device* phydev),
 									u16 devad, u16 regnum, u16 reg_mask, u16 val_on, u16 val_off)
 {
@@ -86,6 +84,8 @@ struct udevice* led_mdio_create (const char* label, struct phy_device *phydev, i
 	priv->val_on = val_on;
 	priv->regnum = regnum;
 	priv->phydev = phydev;
+	
+	return dev;
 }
 
 static int led_mdio_bind(struct udevice *dev)

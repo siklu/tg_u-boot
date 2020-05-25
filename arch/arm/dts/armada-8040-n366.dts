@@ -49,6 +49,40 @@
 			gpio = <&cpm_gpio1 23 GPIO_ACTIVE_HIGH>; /* GPIO[54] */
 		};
 	};
+	
+	leds {
+		compatible = "gpio-leds";
+	
+		power-green-led {
+    		label = "power-g";
+    		gpios = <&cpm_gpio1 17 GPIO_ACTIVE_LOW>; /* MPP49 */ 
+    	};
+    		
+    	power-yellow-led {
+    		label = "power-y";
+    		gpios = <&cpm_gpio1 18 GPIO_ACTIVE_LOW>; /* MPP50 */
+    	};
+    	
+    	modem-green-led {
+    		label = "modem-y";
+    		gpios = <&cpm_gpio1 19 GPIO_ACTIVE_LOW>; /* MPP51 */ 
+    	};
+    	
+    	modem-yellow-led {
+    		label = "modem-g";
+    		gpios = <&cpm_gpio1 20 GPIO_ACTIVE_LOW>; /* MPP52 */
+    	};
+    	
+    	sfp-green-led {
+    		label = "sfp-g";
+    		gpios = <&cps_gpio0 30 GPIO_ACTIVE_LOW>; /* MPP30 */
+    	};
+    	
+    	sfp-yellow-led {
+    		label = "sfp-y";
+    		gpios = <&cps_gpio0 31 GPIO_ACTIVE_LOW>; /* MPP31 */
+    	};
+	};
 };
 
 &ap_pinctl {
@@ -111,6 +145,16 @@
 		marvell,pins = <32>;
 		marvell,function = <0>;
 	};
+	
+	phy0_10g_3310_xmdio_pins: phy0-3310-xmdio-pins {
+		marvell,pins = <42 43>;
+		marvell,function = <0xa>;
+	};
+	
+	phy0_10g_3310_reset_pins: phy0-3310-reset-pins {
+		marvell,pins = <61>;
+		marvell,function = <0>;
+	};
 };
 
 &cpm_comphy {
@@ -149,6 +193,14 @@
 
 &cpm_ethernet {
 	status = "okay";
+};
+
+&cpm_xmdio {
+	status = "okay";
+	pinctrl-names = "default";
+	marvell,reset-gpio = <&cpm_gpio1 29 GPIO_ACTIVE_LOW>;
+	reset-delay-us = <100000>;
+	pinctrl-0 = <&phy0_10g_3310_reset_pins &phy0_10g_3310_xmdio_pins>;
 };
 
 &cpm_pcie0 {

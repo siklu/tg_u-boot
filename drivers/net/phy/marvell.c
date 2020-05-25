@@ -402,7 +402,6 @@ static int m88e151x_config(struct phy_device *phydev)
 	return 0;
 }
 
-#define PRE_WRITE_ADD_PHY1G		0
 #define PRE_WRITE_REG_PHY1G		0x16
 #define PRE_WRITE_VAL_PHY1G		3
 
@@ -424,8 +423,8 @@ static int pre_write_hook (struct phy_device* phydev)
 
 static int m88e151x_probe(struct phy_device *phydev)
 {
-	led_mdio_create("phy 1G green", phydev, pre_write_hook, WRITE_ADD_PHY1G, WRITE_REG_PHY1G, WRITE_GREEN_MASK_PHY1G, WRITE_GREEN_ON_PHY1G, WRITE_GREEN_OFF_PHY1G);
-	led_mdio_create("phy 1G yellow", phydev, pre_write_hook, WRITE_ADD_PHY1G, WRITE_REG_PHY1G, WRITE_YELLOW_MASK_PHY1G, WRITE_YELLOW_ON_PHY1G, WRITE_YELLOW_OFF_PHY1G);
+	led_mdio_create("phy 1G green", phydev, pre_write_hook, MDIO_DEVAD_NONE, WRITE_REG_PHY1G, WRITE_GREEN_MASK_PHY1G, WRITE_GREEN_ON_PHY1G, WRITE_GREEN_OFF_PHY1G);
+	led_mdio_create("phy 1G yellow", phydev, pre_write_hook, MDIO_DEVAD_NONE, WRITE_REG_PHY1G, WRITE_YELLOW_MASK_PHY1G, WRITE_YELLOW_ON_PHY1G, WRITE_YELLOW_OFF_PHY1G);
 	return 0;
 }
 

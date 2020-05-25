@@ -39,11 +39,9 @@ static enum led_state_t mdio_led_get_state(struct udevice *dev)
 	int val = (ret&priv->reg_mask);
 
 	if (val == priv->val_off)
-		return priv->val_off;
-	else if(val == priv->val_on)
-		return priv->val_on;
+		return LEDST_OFF;
 	else
-		return -ENOSYS;
+		return LEDST_ON;
 }
 
 static int mdio_led_set_state(struct udevice *dev, enum led_state_t state)

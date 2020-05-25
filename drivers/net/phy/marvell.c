@@ -405,7 +405,6 @@ static int m88e151x_config(struct phy_device *phydev)
 #define PRE_WRITE_REG_PHY1G		0x16
 #define PRE_WRITE_VAL_PHY1G		3
 
-#define WRITE_ADD_PHY1G			0
 #define WRITE_REG_PHY1G			0x10
 
 #define WRITE_YELLOW_ON_PHY1G	0x90
@@ -418,7 +417,7 @@ static int m88e151x_config(struct phy_device *phydev)
 
 static int pre_write_hook (struct phy_device* phydev)
 {
-	return phy_write(phydev, PRE_WRITE_ADD_PHY1G, PRE_WRITE_REG_PHY1G, PRE_WRITE_VAL_PHY1G);
+	return phy_write(phydev, MDIO_DEVAD_NONE, PRE_WRITE_REG_PHY1G, PRE_WRITE_VAL_PHY1G);
 }
 
 static int m88e151x_probe(struct phy_device *phydev)

@@ -73,7 +73,11 @@ struct udevice* led_mdio_create (const char* label, struct phy_device *phydev, i
 {
 	struct led_mdio_priv *priv;
 	struct udevice* dev;
-	device_bind(phydev->dev, DM_GET_DRIVER(led_mdio), label, NULL, -1, &dev);
+	device_bind_driver(phydev->dev, "mdio_led", label, &dev);
+	if (dev == NULL) {
+		printf("ERROR: could not create mdio_led driver");
+		return NULL;
+	}
 	priv = dev_get_priv(dev);
 	priv->devad = devad;
 	priv->pre_write_hook = pre_write_hook;

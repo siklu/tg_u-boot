@@ -134,7 +134,7 @@ setup_dhcp_address(void) {
 	char *rootpath = strdup(env_get("rootpath"));
 	
 	SK_LOG_NFS("Using DHCP...\n");
-	ret = run_command("dhcp", 0);
+	ret = run_command("set autoload false; dhcp", 0);
 
 	env_set("serverip", serverip);
 	if (serverip)

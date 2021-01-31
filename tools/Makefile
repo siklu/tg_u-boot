@@ -135,6 +135,8 @@ HOSTLOADLIBES_mkimage += \
 	$(shell pkg-config --libs libssl libcrypto 2> /dev/null || echo "-lssl -lcrypto")
 endif
 
+HOSTLOADLIBES_mkimage += -lbsd
+
 HOSTLOADLIBES_dumpimage := $(HOSTLOADLIBES_mkimage)
 HOSTLOADLIBES_fit_info := $(HOSTLOADLIBES_mkimage)
 HOSTLOADLIBES_fit_check_sign := $(HOSTLOADLIBES_mkimage)

@@ -2614,7 +2614,7 @@ qpic_nand_read_page(struct mtd_info *mtd, uint32_t page,
 	uint32_t i;
 	int nand_ret = NANDC_RESULT_SUCCESS;
 	uint8_t flags = 0;
-	uint32_t *cmd_list_temp = NULL;
+	struct cmd_element *cmd_list_temp = NULL;
 	uint16_t data_bytes;
 	uint16_t ud_bytes_in_last_cw;
 	uint16_t oob_bytes;
@@ -2791,7 +2791,7 @@ qpic_nand_read_page(struct mtd_info *mtd, uint32_t page,
 				   (uint32_t)((addr_t)&(stats[i].flash_sts)),
 				   CE_READ_TYPE);
 
-		cmd_list_temp = (uint32_t *)cmd_list_ptr;
+		cmd_list_temp = cmd_list_ptr;
 
 		cmd_list_ptr++;
 

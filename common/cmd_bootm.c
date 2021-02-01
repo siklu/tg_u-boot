@@ -654,7 +654,7 @@ struct Image_header {
 static int booti_setup(bootm_headers_t *images)
 {
 	struct Image_header *ih;
-	uint64_t dst;
+	uint32_t dst;
 
 	ih = (struct Image_header *)map_sysmem(images->ep, 0);
 
@@ -676,7 +676,7 @@ static int booti_setup(bootm_headers_t *images)
 	if (images->ep != dst) {
 		void *src;
 
-		debug("Moving Image from 0x%lx to 0x%llx\n", images->ep, dst);
+		debug("Moving Image from 0x%lx to 0x%x\n", images->ep, dst);
 
 		src = (void *)images->ep;
 		images->ep = dst;

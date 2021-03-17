@@ -264,6 +264,9 @@ extern loff_t board_env_size;
  */
 #define CONFIG_OF_LIBFDT		1
 #define CONFIG_SYS_HUSH_PARSER
+#define CONFIG_SYS_LONGHELP
+#define CONFIG_AUTO_COMPLETE
+#define CONFIG_CMDLINE_EDITING
 #define CONFIG_CMD_XIMG
 
 /* MTEST */

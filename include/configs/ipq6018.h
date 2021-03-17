@@ -210,6 +210,8 @@ extern loff_t board_env_size;
 #endif
 
 #define CONFIG_CMD_UBI
+#define CONFIG_CMD_UBIFS
+#define CONFIG_LZO
 
 /*
  * NAND Flash Configs

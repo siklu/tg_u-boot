@@ -28,7 +28,9 @@ char *kernel_load_address(void)
 
 char *kernel_path(void)
 {
-	if (IS_ENABLED(CONFIG_ARM64))
+	if (IS_ENABLED(CONFIG_ARCH_IPQ6018))
+		return BOOT_DIR "/fitImage";
+	else if (IS_ENABLED(CONFIG_ARM64))
 		return BOOT_DIR "/Image";
 	else
 		return BOOT_DIR "/zImage";

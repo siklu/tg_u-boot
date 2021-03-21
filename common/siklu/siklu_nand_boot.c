@@ -51,6 +51,10 @@ static int load_from_ubifs(void) {
 		return ret;
 	}
 
+	/* No separate DTB on IPQ60xx */
+	if (IS_ENABLED(CONFIG_ARCH_IPQ6018))
+		return 0;
+
 	ret = ubifs_load(dtb_path(), dtb_addr, 0);
 	if (ret) {
 		printk(KERN_ERR "Failed to load %s\n", dtb_path());

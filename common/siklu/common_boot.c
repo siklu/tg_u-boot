@@ -52,7 +52,9 @@ char *dtb_path(void)
 
 static char *boot_command(void)
 {
-	if (IS_ENABLED(CONFIG_ARM64))
+	if (IS_ENABLED(CONFIG_ARCH_IPQ6018))
+		return "bootm";
+	else if (IS_ENABLED(CONFIG_ARM64))
 		return "booti";
 	else
 		return "bootz";
@@ -63,6 +65,7 @@ int load_kernel_image(void) {
 	int ret;
 	char formatted_bootargs[1024];
 	const char *old_bootargs;
+	char *boot_cmd_format;
 	unsigned long fdt_addr;
 
 	if (strict_strtoul(dtb_load_address(), 16, &fdt_addr) < 0)
@@ -78,7 +81,12 @@ int load_kernel_image(void) {
 		setenv("bootargs", formatted_bootargs);
 	}
 
-	snprintf(buff, sizeof(buff), "%s %s - %s", boot_command(),
+	if (IS_ENABLED(CONFIG_ARCH_IPQ6018))
+		boot_cmd_format = "%s %s";
+	else
+		boot_cmd_format = "%s %s - %s";
+
+	snprintf(buff, sizeof(buff), boot_cmd_format, boot_command(),
 			kernel_load_address(), dtb_load_address());
 	
 	ret = run_command(buff, 0);

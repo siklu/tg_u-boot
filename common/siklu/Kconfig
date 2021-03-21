@@ -1,0 +1,70 @@
+menu "Siklu Commands and functionality"
+
+config SIKLU
+	bool "Siklu devices"
+	   
+config SIKLU_CONFIG_MTD_PART
+	string "Siklu device configuration partition"
+	default "device_config"
+
+config SIKLU_BANK_MGMT_MTD_PART
+	string "Siklu device management partition"
+	default "device_mgmt"
+
+config SIKLU_ENV_IS_IN_MTD_NOR
+	bool "Adds MTDPARTS-based environment location"
+
+if SIKLU_ENV_IS_IN_MTD_NOR
+menu "Siklu Environment Settings"
+
+config SIKLU_ENV_PART
+	string "SPI NOR environment MTD partition"
+
+config SIKLU_DEFAULT_MAC_ADDRESS
+	string "MAC address the device should use if it failed to get one using device_config"
+	default "00:24:a4:00:de:ad"
+
+endmenu
+endif
+
+menu "NAND boot Options"
+
+config SIKLU_ROOTFS_VOLUME_NANE
+	string "The rootfs's ubi volume name"
+	default "rootfs"
+	
+endmenu
+
+menu "NFS Boot Options"
+
+config SIKLU_DEFAULT_NFS_SERVERIP
+	string "Default NFS serverip"
+	default "192.168.1.30"
+	
+config SIKLU_DEFAULT_NFS_NETMASK
+	string "Default NFS netmask"
+	default "255.255.254.0"
+	
+config SIKLU_DEFAULT_NFS_ROOTPATH
+	string "Default NFS rootpath (%s = developer_id)"
+	default "/local/home/%s/n366_nfs"
+	
+config SIKLU_NFS_NETDEV
+	string "The linux network device that will be used to load nfs"
+	default "eth1"
+	
+config SIKLU_NFS_USB_NETDEV
+	string "The linux network device that will be used to load nfs, on USB mode"
+	default "usb0"
+	
+config SIKLU_NFS_HOSTNAME
+	string "Hostname to be passed to Linux when booting from NFS"
+	default "Siklu"
+	
+config SIKLU_LINUX_NFS_VERSION
+	string "Linux NFS version to be used when using nfsroot"
+	default "3"
+
+endmenu
+
+endmenu

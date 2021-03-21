@@ -144,6 +144,9 @@ extern loff_t board_env_size;
 /* Allow to overwrite serial and ethaddr */
 #define CONFIG_ENV_OVERWRITE
 
+#define CONFIG_EXTRA_ENV_SETTINGS	\
+	"kernel_addr_r=44000000\0"
+
 /*
  * Block Device & Disk  Partition Config
  */

@@ -64,10 +64,14 @@ static void fit_dtb_addr(void)
 
 char *dtb_load_address(void)
 {
+	char *env;
+
 	if (IS_ENABLED(CONFIG_ARCH_IPQ6018))
 		fit_dtb_addr();
 
-	return getenv("fdt_addr_r");
+	env = getenv("fdt_addr_r");
+
+	return env ? env : "0";
 }
 
 char *dtb_path(void)

@@ -36,8 +36,31 @@ char *kernel_path(void)
 		return BOOT_DIR "/zImage";
 }
 
+static void fit_dtb_addr(void)
+{
+	void *fit_hdr = (void *) load_addr;
+	int fdt_offset;
+	const void *fdt_data;
+	size_t fdt_len;
+
+	if (!fit_check_format(fit_hdr))
+		return;
+
+	fdt_offset = fit_image_get_node(fit_hdr, "fdt@1");
+	if (fdt_offset < 0)
+		return;
+
+	if (fit_image_get_data(fit_hdr, fdt_offset, &fdt_data, &fdt_len))
+		return;
+
+	setenv_hex("fdt_addr_r", (unsigned long) fdt_data);
+}
+
 char *dtb_load_address(void)
 {
+	if (IS_ENABLED(CONFIG_ARCH_IPQ6018))
+		fit_dtb_addr();
+
 	return getenv("fdt_addr_r");
 }
 

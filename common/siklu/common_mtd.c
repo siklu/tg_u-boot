@@ -33,6 +33,7 @@ siklu_read_from_mtd(struct part_info *part) {
 	char *buffer;
 	char cmd[1024];
 	int ret;
+	char *mtd_cmd = IS_ENABLED(CONFIG_ARCH_IPQ6018) ? "nand" : "sf";
 
 	buffer = malloc(part->size);
 	if (buffer == NULL) {
@@ -46,7 +47,7 @@ siklu_read_from_mtd(struct part_info *part) {
 	 * very stable.
 	 */
 	snprintf(cmd, sizeof(cmd),
-		 "sf read %p %s",
+		 "%s read %p %s", mtd_cmd,
 		 buffer,
 		 part->name);
 	ret = run_command(cmd, 0);

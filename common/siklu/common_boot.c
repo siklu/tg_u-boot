@@ -14,6 +14,9 @@ void setup_bootargs(const char *bootargs) {
 
 	old_bootargs = getenv("bootargs");
 	mtdparts = getenv("mtdparts");
+	/* For IPQ60xx restore the default NAND only mtdparts */
+	if (IS_ENABLED(CONFIG_ARCH_IPQ6018))
+		mtdparts = MTDPARTS_DEFAULT;
 
 	snprintf(formatted_bootargs, sizeof(formatted_bootargs), "%s %s %s",
 			bootargs, old_bootargs ? old_bootargs : "",

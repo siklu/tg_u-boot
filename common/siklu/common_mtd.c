@@ -5,6 +5,16 @@
 
 #include <malloc.h>
 
+static void
+siklu_ipq_set_mtdparts(void) {
+	char mtdparts[1024];
+
+	snprintf(mtdparts, sizeof(mtdparts), "%s;spi0.0", MTDPARTS_DEFAULT);
+	qca_smem_part_to_mtdparts(mtdparts, sizeof(mtdparts));
+	if (mtdparts[0] != '\0')
+		setenv("mtdparts", mtdparts);
+}
+
 struct part_info*
 siklu_get_part_by_label(const char *mtd_part) {
 	struct mtd_device *dev;
@@ -13,6 +23,9 @@ siklu_get_part_by_label(const char *mtd_part) {
 
 	/* Make sure the NOR device is probed */
 	run_command("sf probe", 0);
+
+	if (IS_ENABLED(CONFIG_ARCH_IPQ6018))
+		siklu_ipq_set_mtdparts();
 
 	if (mtdparts_init() != 0) {
 		printf("Error initializing mtdparts!\n");

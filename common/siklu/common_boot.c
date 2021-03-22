@@ -46,6 +46,9 @@ static void fit_dtb_addr(void)
 	const void *fdt_data;
 	size_t fdt_len;
 
+	if (genimg_get_format(fit_hdr) != IMAGE_FORMAT_FIT)
+		return;
+
 	if (!fit_check_format(fit_hdr))
 		return;
 

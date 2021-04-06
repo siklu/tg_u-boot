@@ -18,6 +18,7 @@
 #include <mmc.h>
 #include <asm/arch-qca-common/smem.h>
 #include <asm/arch-qca-common/qca_common.h>
+#include <siklu_load_device_configurations.h>
 #include <sdhci.h>
 #ifdef CONFIG_IPQ_TINY_SPI_NOR
 #include <spi.h>
@@ -165,6 +166,10 @@ void set_ethmac_addr(void)
 	uchar *mac_addr;
 	char ethaddr[16] = "ethaddr";
 	char mac[64];
+	if (IS_ENABLED(CONFIG_SIKLU)) {
+		load_siklu_device_configurations();
+		return;
+	}
 	/* Get the MAC address from ART partition */
 	ret = get_eth_mac_address(enetaddr, CONFIG_IPQ_NO_MACS);
 	for (i = 0; (ret >= 0) && (i < CONFIG_IPQ_NO_MACS); i++) {

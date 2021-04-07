@@ -81,14 +81,26 @@ int
 siklu_write_to_mtd(struct part_info *part, const char *data, size_t data_size) {
 	char cmd[1024];
 	int ret;
+	char *mtd_cmd = IS_ENABLED(CONFIG_ARCH_IPQ6018) ? "nand write"
+		: "sf update";
 
 	/**
 	 * There is no better way to do it on u-boot unfortunately,
 	 * using mtd_read will crash the system and generally does not look 
 	 * very stable.
 	 */
+	if (IS_ENABLED(CONFIG_ARCH_IPQ6018)) {
+		/* No 'update' command for nand. Erase first. */
+		snprintf(cmd, sizeof(cmd), "nand erase.part %s", part->name);
+		ret = run_command(cmd, 0);
+		if (ret) {
+			printf("Failed to erase flash using \"%s\"\n", cmd);
+			return -EIO;
+		}
+	}
 	snprintf(cmd, sizeof(cmd),
-		 "sf update %p %s %x",
+		 "%s %p %s %x",
+		 mtd_cmd,
 		 data,
 		 part->name,
 		 (uint)data_size);

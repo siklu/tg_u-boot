@@ -4,6 +4,8 @@
 #include <command.h>
 #include <led.h>
 
+extern void qca8075_phy_siklu_led_ctl(int led, int on);
+
 /* led_state_t is from newer mainline U-Boot led.h */
 enum led_state_t {
 	LEDST_OFF = 0,
@@ -33,10 +35,23 @@ typedef enum
 	SIKLU_COLOR_MAX
 } SIKLU_LED_COLOR;
 
+typedef enum
+{
+	LED_METHOD_GPIO,
+	LED_METHOD_ETH_PHY,
+} SIKLU_LED_METHOD;
+
 typedef struct
 {
-	unsigned int yellow_gpio;
-	unsigned int green_gpio;
+	SIKLU_LED_METHOD method;
+	union {
+		unsigned int yellow_gpio;
+		int yellow_id;
+	};
+	union {
+		unsigned int green_gpio;
+		int green_id;
+	};
 } siklu_dual_led_def_t;
 
 static const char* const siklu_led_label_to_str[SIKLU_LED_MAX] =
@@ -52,8 +67,16 @@ static int siklu_led_set_state(const siklu_dual_led_def_t *def, SIKLU_LED_COLOR 
 	unsigned int led_gpio;
 	int value;
 
-	led_gpio = (color == SIKLU_GREEN_COLOR ? def->green_gpio : def->yellow_gpio);
 	value = (state == LEDST_OFF) ? 1 : 0;
+
+	if (def->method == LED_METHOD_ETH_PHY) {
+		int led_id = color == SIKLU_GREEN_COLOR ? def->green_id
+				: def->yellow_id;
+		qca8075_phy_siklu_led_ctl(led_id, value);
+		return 0;
+	}
+
+	led_gpio = (color == SIKLU_GREEN_COLOR ? def->green_gpio : def->yellow_gpio);
 
 	gpio_direction_output(led_gpio, value);
 
@@ -63,12 +86,19 @@ static int siklu_led_set_state(const siklu_dual_led_def_t *def, SIKLU_LED_COLOR 
 static const siklu_dual_led_def_t siklu_led_ipq6010_ctu[] =
 {
 	[SIKLU_LED_POWER] = {
+		.method = LED_METHOD_GPIO,
 		.yellow_gpio = 68,
 		.green_gpio  = 75,
 	},
 	[SIKLU_LED_WLAN] = {
+		.method = LED_METHOD_GPIO,
 		.yellow_gpio = 70,
 		.green_gpio  = 73,
+	},
+	[SIKLU_LED_ETH1] = {
+		.method = LED_METHOD_ETH_PHY,
+		.yellow_id = 100,
+		.green_id  = 1000,
 	},
 };
 

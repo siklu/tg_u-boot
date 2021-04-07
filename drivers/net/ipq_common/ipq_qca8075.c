@@ -759,6 +759,27 @@ static  u16 qca8075_phy_interface_get_mode(u32 phy_id)
 	return phy_data;
 }
 
+#define QCA8072_CTU_PHY_ADDR	4
+
+void qca8075_phy_siklu_led_ctl(int led, int on)
+{
+	u16 reg;
+	u16 val;
+
+	if (led == 1000) {
+		reg = QCA8075_PHY_MMD7_LED_1000_CTRL2;
+		val = on ? QCA8075_LED_1000_FORCE_ON
+			: QCA8075_LED_1000_FORCE_OFF;
+	} else {
+		reg = QCA8075_PHY_MMD7_LED_100_CTRL2;
+		val = on ? QCA8075_LED_100_FORCE_ON
+			: QCA8075_LED_100_FORCE_OFF;
+	}
+
+	qca8075_phy_mmd_write(0, QCA8072_CTU_PHY_ADDR, QCA8075_PHY_MMD7_NUM, reg,
+			val);
+}
+
 void qca8075_phy_interface_set_mode(u32 phy_id, u32 mode)
 {
 	u16 phy_data;

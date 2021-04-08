@@ -4,7 +4,7 @@
 #include <common.h>
 #include <command.h>
 #include <dm/device.h>
-#include <asm/gpio.h>
+#include <asm/arch-qca-common/gpio.h>
 
 typedef enum
 {
@@ -18,26 +18,28 @@ const char CTU_SPBS_NAME[] = "ap_gpio071";
 static RESET_OPTION_TYPE siklu_get_reset_status(void)
 {
 	RESET_OPTION_TYPE ret = RESET_MAX_OPTIONS;
-	unsigned gpio_no;
+	int gpio_no;
 	const char * failure = NULL;
 	int reset_status;
-	const char * spbs_name = NULL;
+	//const char * spbs_name = NULL;
 
-	if(of_machine_is_compatible("siklu,n366"))
-	{
-		spbs_name = CTU_SPBS_NAME;
-	}
-	else
-	{
-		failure = "non-suported board";
-		goto error;
-	}
+	//if(of_machine_is_compatible("siklu,n366"))
+	//{
+	//	spbs_name = CTU_SPBS_NAME;
+	//}
+	//else
+	//{
+	//	failure = "non-suported board";
+	//	goto error;
+	//}
 
-	if(gpio_lookup_name(spbs_name, NULL, NULL, &gpio_no))
+    gpio_no = 71;
+	if(!gpio_no)
 	{
 		failure = "gpio_lookup_name";
 		goto error;
 	}
+    qca_gpio_init(gpio_no);
 
 	if(gpio_request(gpio_no, "spbs"))
 	{
@@ -64,7 +66,7 @@ static RESET_OPTION_TYPE siklu_get_reset_status(void)
 	}
 
 error_free_gpio:
-	gpio_free(gpio_no);
+	qca_gpio_deinit(gpio_no);
 error:
 	if(ret == RESET_MAX_OPTIONS)
 		printf("Failed on %s", failure);

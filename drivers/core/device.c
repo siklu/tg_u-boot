@@ -657,12 +657,3 @@ int device_set_name(struct udevice *dev, const char *name)
 
 	return 0;
 }
-
-#if CONFIG_IS_ENABLED(OF_CONTROL)
-bool of_machine_is_compatible(const char *compat)
-{
-	const void *fdt = gd->fdt_blob;
-
-	return !fdt_node_check_compatible(fdt, 0, compat);
-}
-#endif

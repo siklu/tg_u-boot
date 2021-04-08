@@ -499,6 +499,17 @@ bool device_is_last_sibling(struct udevice *dev);
 int device_set_name(struct udevice *dev, const char *name);
 
 /**
+ * of_machine_is_compatible() - check if the machine is compatible with
+ *				the compat
+ *
+ * This allows to check whether the machine is comaptible with the compat.
+ *
+ * @compat:	Compatible string which needs to verified
+ * @return true if OK, false if the compatible is not found
+ */
+bool of_machine_is_compatible(const char *compat);
+
+/**
  * device_is_on_pci_bus - Test if a device is on a PCI bus
  *
  * @dev:	device to test

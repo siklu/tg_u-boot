@@ -3,7 +3,6 @@
 
 #include <common.h>
 #include <command.h>
-#include <dm/device.h>
 #include <asm/arch-qca-common/gpio.h>
 
 typedef enum
@@ -22,8 +21,6 @@ static RESET_OPTION_TYPE siklu_get_reset_status(void)
 	const char * failure = NULL;
 	int reset_status;
 
-	qca_gpio_init(gpio_no);
-
 	reset_status = gpio_get_value(gpio_no);
 
 	if (reset_status == 0)
@@ -34,8 +31,6 @@ static RESET_OPTION_TYPE siklu_get_reset_status(void)
 	{
 		failure = "gpio_get_value";
 	}
-
-	qca_gpio_deinit(gpio_no);
 
 	if(ret == RESET_MAX_OPTIONS)
 		printf("Failed on %s", failure);

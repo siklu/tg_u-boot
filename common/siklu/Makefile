@@ -9,4 +9,5 @@ obj-$(CONFIG_SIKLU) = siklu_nand_boot.o \
 	siklu_load_device_configurations.o \
 	siklu_device_config.o \
 	siklu_shw.o \
-	siklu_board_generic.o
+	siklu_board_generic.o \
+	siklu_spbs_command.o

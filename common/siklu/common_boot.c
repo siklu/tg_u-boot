@@ -41,7 +41,7 @@ char *kernel_path(void)
 
 static void fit_dtb_addr(void)
 {
-	void *fit_hdr = (void *) load_addr;
+	void *fit_hdr = (void *) simple_strtoul(kernel_load_address(), NULL, 16);
 	int fdt_offset;
 	const void *fdt_data;
 	size_t fdt_len;
@@ -102,6 +102,9 @@ int load_kernel_image(void) {
 	unsigned long fdt_addr;
 
 	if (strict_strtoul(dtb_load_address(), 16, &fdt_addr) < 0)
+		return -EINVAL;
+
+	if (fdt_addr == 0)
 		return -EINVAL;
 
 	const char* fdt_param = siklu_fdt_getprop_string((void *)fdt_addr, "/chosen",

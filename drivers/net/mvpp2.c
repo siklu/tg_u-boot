@@ -3139,7 +3139,8 @@ static void gop_gmac_2500basex_cfg(struct mvpp2_port *port)
 	 * bypass enabled (link interrupt storm risk
 	 * otherwise).
 	 */
-	val = MVPP2_GMAC_EN_PCS_AN |
+	val = MVPP2_GMAC_AN_BYPASS_EN |
+		MVPP2_GMAC_EN_PCS_AN |
 		MVPP2_GMAC_CONFIG_GMII_SPEED  |
 		MVPP2_GMAC_CONFIG_FULL_DUPLEX |
 		MVPP2_GMAC_CHOOSE_SAMPLE_TX_CONFIG;
@@ -3179,7 +3180,8 @@ static void gop_gmac_1000basex_cfg(struct mvpp2_port *port)
 	 * bypass enabled (link interrupt storm risk
 	 * otherwise).
 	 */
-	val = MVPP2_GMAC_EN_PCS_AN |
+	val = MVPP2_GMAC_AN_BYPASS_EN |
+		MVPP2_GMAC_EN_PCS_AN |
 		MVPP2_GMAC_CONFIG_GMII_SPEED  |
 		MVPP2_GMAC_CONFIG_FULL_DUPLEX |
 		MVPP2_GMAC_CHOOSE_SAMPLE_TX_CONFIG;

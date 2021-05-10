@@ -23,8 +23,6 @@ typedef enum
 	SIKLU_LED_POWER,
 	SIKLU_LED_WLAN,
 	SIKLU_LED_ETH1,
-	SIKLU_LED_ETH2,
-	SIKLU_LED_ETH3,
 	SIKLU_LED_MAX
 } SIKLU_LED_TYPE;
 
@@ -59,17 +57,24 @@ static const char* const siklu_led_label_to_str[SIKLU_LED_MAX] =
 	[SIKLU_LED_POWER]	= "power",
 	[SIKLU_LED_WLAN]	= "wlan",
 	[SIKLU_LED_ETH1]	= "eth1",
-	[SIKLU_LED_ETH2]	= "eth2",
-	[SIKLU_LED_ETH3]	= "eth3",
 };
+
 
 static int siklu_led_set_state(const siklu_dual_led_def_t *def, SIKLU_LED_COLOR color, enum led_state_t state) {
 	unsigned int led_gpio;
 	int value;
 
-	value = (state == LEDST_OFF) ? 1 : 0;
+	value = (state == LEDST_OFF) ? 0 : 1;
 
-	if (def->method == LED_METHOD_ETH_PHY) {
+	if ((state == LEDST_OFF) && (color == SIKLU_COLOR_MAX)) {
+	// turn off all colors for this led
+		for(int color_idx = 0; color_idx < SIKLU_COLOR_MAX; ++color_idx) {
+			siklu_led_set_state(def, color_idx, LEDST_OFF);
+		}
+		return 0;
+	}
+
+	if (def->method == LED_METHOD_ETH_PHY) {	
 		int led_id = color == SIKLU_GREEN_COLOR ? def->green_id
 				: def->yellow_id;
 		qca8075_phy_siklu_led_ctl(led_id, value);
@@ -77,7 +82,6 @@ static int siklu_led_set_state(const siklu_dual_led_def_t *def, SIKLU_LED_COLOR 
 	}
 
 	led_gpio = (color == SIKLU_GREEN_COLOR ? def->green_gpio : def->yellow_gpio);
-
 	gpio_direction_output(led_gpio, value);
 
 	return 0;
@@ -87,8 +91,8 @@ static const siklu_dual_led_def_t siklu_led_ipq6010_ctu[] =
 {
 	[SIKLU_LED_POWER] = {
 		.method = LED_METHOD_GPIO,
-		.yellow_gpio = 68,
-		.green_gpio  = 75,
+		.yellow_gpio = 24,
+		.green_gpio  = 23,
 	},
 	[SIKLU_LED_WLAN] = {
 		.method = LED_METHOD_GPIO,
@@ -148,12 +152,9 @@ static int all_leds_color(SIKLU_LED_COLOR led_color)
 
 static int turn_off_all_leds(void) {
 	int i;
-	int color;
 
 	for(i = 0; i < ARRAY_SIZE(siklu_led_ipq6010_ctu); ++i) {
-		for(color = 0; color < SIKLU_COLOR_MAX; ++color) {
-			siklu_led_set_state(&siklu_led_ipq6010_ctu[i], color, LEDST_OFF);
-		}
+			siklu_led_set_state(&siklu_led_ipq6010_ctu[i], SIKLU_COLOR_MAX, LEDST_OFF);
 	}
 	return 0;
 }
@@ -208,6 +209,5 @@ U_BOOT_CMD(
 		0,
 		do_led_control,
 		"siklu led control",
-		"Allows you to control the power, wlan, eth1, eth2 and eth3 leds\n sled < power | wlan | eth1 | eth2 | eth3 | all > < o | g | y >"
+		"Allows you to control the power, wlan and eth1 leds\n sled < power | wlan | eth1 | all > < o | g | y >"
 );
-

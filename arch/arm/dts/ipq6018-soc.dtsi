@@ -62,6 +62,7 @@
 		#address-cells = <1>;
 		#size-cells = <1>;
 		reg = <0x8a00000 0xcd00>;
+		perst_gpio = <55>;
 	};
 
 	xhci@7000000 {
@@ -69,6 +70,7 @@
 		#address-cells = <1>;
 		#size-cells = <1>;
 		reg = <0x7000000 0xcd00>;
+		perst_gpio = <55>;
 	};
 
 	mmc: sdhci@7804000 {

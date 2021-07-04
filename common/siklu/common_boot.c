@@ -8,20 +8,23 @@
 #define BOOT_DIR "/boot"
 
 void setup_bootargs(const char *bootargs) {
-	char formatted_bootargs[1024];
-	const char *mtdparts;
-	const char *old_bootargs;
-
-	old_bootargs = getenv("bootargs");
+	
+	const char *mtdparts;	
 	mtdparts = getenv("mtdparts");
 	/* For IPQ60xx restore the default NAND only mtdparts */
 	if (IS_ENABLED(CONFIG_ARCH_IPQ6018))
 		mtdparts = MTDPARTS_DEFAULT;
 
-	snprintf(formatted_bootargs, sizeof(formatted_bootargs), "%s %s %s",
-			bootargs, old_bootargs ? old_bootargs : "",
+	char mtdparts_cmd[1024];
+	snprintf(mtdparts_cmd, sizeof(mtdparts_cmd), "setenv bootargs $bootargs '%s'",
 			mtdparts ? mtdparts : "");
-	setenv("bootargs", formatted_bootargs);
+
+	char bootargs_cmd[1024];
+	snprintf(bootargs_cmd, sizeof(bootargs_cmd), "setenv bootargs $bootargs '%s'",
+			bootargs);
+
+	run_command(mtdparts_cmd,0);
+	run_command(bootargs_cmd, 0);
 }
 
 char *kernel_load_address(void)
@@ -102,29 +105,29 @@ int load_kernel_image(void) {
 	unsigned long fdt_addr;
 
 	if (strict_strtoul(dtb_load_address(), 16, &fdt_addr) < 0)
-		return -EINVAL;
+	 	return -EINVAL;
 
-	if (fdt_addr == 0)
-		return -EINVAL;
+	 if (fdt_addr == 0)
+	 	return -EINVAL;
 
-	const char* fdt_param = siklu_fdt_getprop_string((void *)fdt_addr, "/chosen",
-			"bootargs", NULL);
+	 const char* fdt_param = siklu_fdt_getprop_string((void *)fdt_addr, "/chosen",
+	 		"bootargs", NULL);
 
-	if (!IS_ERR(fdt_param)) {
-		old_bootargs = getenv("bootargs");
-		snprintf(formatted_bootargs, sizeof(formatted_bootargs), "%s %s", old_bootargs, fdt_param);
-		printf("SIKLU BOOT: Added DTS-specific bootargs: %s\n", fdt_param);
-		setenv("bootargs", formatted_bootargs);
-	}
+	 if (!IS_ERR(fdt_param)) {
+	 	old_bootargs = getenv("bootargs");
+	 	snprintf(formatted_bootargs, sizeof(formatted_bootargs), "%s %s", old_bootargs, fdt_param);
+	 	printf("SIKLU BOOT: Added DTS-specific bootargs: %s\n", fdt_param);
+	 	setenv("bootargs", formatted_bootargs);
+	 }
 
 	if (IS_ENABLED(CONFIG_ARCH_IPQ6018))
-		boot_cmd_format = "%s %s";
+		boot_cmd_format = "%s";
 	else
 		boot_cmd_format = "%s %s - %s";
 
 	snprintf(buff, sizeof(buff), boot_cmd_format, boot_command(),
-			kernel_load_address(), dtb_load_address());
-	
+			kernel_load_address());
+
 	ret = run_command(buff, 0);
 	
 	/* If we are here, we could not run the command */

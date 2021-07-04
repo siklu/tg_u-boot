@@ -1,4 +1,5 @@
 obj-$(CONFIG_SIKLU) = siklu_nand_boot.o \
+	siklu_nfs_boot.o \
 	bank_management.o \
 	common_boot.o \
 	bank_management.o \

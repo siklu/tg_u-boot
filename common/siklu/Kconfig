@@ -47,7 +47,7 @@ config SIKLU_DEFAULT_NFS_NETMASK
 	
 config SIKLU_DEFAULT_NFS_ROOTPATH
 	string "Default NFS rootpath (%s = developer_id)"
-	default "/local/home/%s/n366_nfs"
+	default "/local/home/%s/ipq6010-ctu_nfs"
 	
 config SIKLU_NFS_NETDEV
 	string "The linux network device that will be used to load nfs"

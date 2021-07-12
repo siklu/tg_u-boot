@@ -244,6 +244,8 @@ do_nfs_boot(cmd_tbl_t *cmdtp, int flag, int argc,
 	// (in arch/arm/lib/cache-cp15.c) may crush the init 
 	dcache_disable();
 
+	run_command("gpio clear 55", 0);
+
 	load_kernel_image();
 	
 	return CMD_RET_FAILURE;

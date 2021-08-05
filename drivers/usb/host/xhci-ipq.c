@@ -34,6 +34,7 @@ struct ipq_xhci_platdata {
 	fdt_addr_t hcd_base;
 	unsigned int rst_ctrl;
 	unsigned int hs_only;
+	unsigned int rst_gpio;
 };
 
 struct ipq_xhci {
@@ -54,6 +55,12 @@ void ipq_reset_usb_phy(void *data)
 	if (platdata == NULL) {
 		printf("Error: %s Failed\n", __func__);
 		return;
+	}
+
+	if(platdata->rst_gpio != -1) {
+		gpio_direction_output(platdata->rst_gpio, GPIO_OUT_LOW);
+		mdelay(1000);
+		gpio_direction_output(platdata->rst_gpio, GPIO_OUT_HIGH);
 	}
 
 	gcc_rst_ctrl = platdata->rst_ctrl;
@@ -163,6 +170,7 @@ static int xhci_ofdata_to_platdata(struct udevice *dev)
 {
 	struct ipq_xhci_platdata *platdata;
 	const void *blob = gd->fdt_blob;
+	int rst_gpio;
 
 	platdata = dev_get_platdata(dev);
 	if (platdata == NULL) {
@@ -178,6 +186,14 @@ static int xhci_ofdata_to_platdata(struct udevice *dev)
 
 	platdata->rst_ctrl = fdtdec_get_int(blob, dev->of_offset, "rst_ctrl", 0);
 	platdata->hs_only = fdtdec_get_int(blob, dev->of_offset, "hs_only", 0);
+
+	rst_gpio = fdtdec_get_int(blob, dev->of_offset, "perst_gpio", 0);
+	if (rst_gpio <= 0) {
+		debug("Error: Can't get perst_gpio\n");
+		rst_gpio = -1;
+	}
+	
+	platdata->rst_gpio = rst_gpio;
 
 	return 0;
 }

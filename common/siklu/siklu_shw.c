@@ -1,4 +1,5 @@
 #include <common.h>
+#include <spi_flash.h>
 #include <linux/mtd/nand.h>
 #include <asm/arch-qca-common/qpic_nand.h>
 #include <siklu/siklu_board_generic.h>
@@ -116,20 +117,22 @@ static void show_dram_info (void)
 // show SF (NOR)
 static void show_sf_info (void)
 {
+	struct spi_flash *flash;
+
 	printf("SF: ");
 
-	/* ipq_spi_flash registers the SPI flash as a nand device */
-	struct mtd_info *nor = get_mtd_device_nm("nand1");
-	if (nor == NULL)
+	/* max_hz and spi_mode parameters are ignored */
+	flash = spi_flash_probe(0, 0, 0, 0);
+	if (flash == NULL)
 	{
 		printf("Unknown\n");
 		return;
 	}
 
-	printf("%s with page size ", nor->name);
-	print_size(nor->writesize, ", erase size ");
-	print_size(nor->erasesize, ", total ");
-	print_size(nor->size, "");
+	printf("%s with page size ", flash->name);
+	print_size(flash->page_size, ", erase size ");
+	print_size(flash->erase_size, ", total ");
+	print_size(flash->size, "");
 	printf ("\n");
 }
 

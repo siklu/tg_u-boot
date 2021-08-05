@@ -9,8 +9,6 @@
 #include <common.h>
 #include <command.h>
 #include <errno.h>
-#include <dm.h>
-#include <asm/gpio.h>
 
 __weak int name_to_gpio(const char *name)
 {
@@ -121,7 +119,6 @@ static int do_gpio(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	enum gpio_cmd sub_cmd;
 	ulong value;
 	const char *str_cmd, *str_gpio = NULL;
-	int ret;
 #ifdef CONFIG_DM_GPIO
 	bool all = false;
 #endif
@@ -182,16 +179,9 @@ static int do_gpio(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	if (gpio < 0)
 		goto show_usage;
 #endif
-	/* grab the pin before we tweak it */
-	ret = gpio_request(gpio, "cmd_gpio");
-	if (ret && ret != -EBUSY) {
-		printf("gpio: requesting pin %u failed\n", gpio);
-		return -1;
-	}
 
 	/* finally, let's do it: set direction and exec command */
 	if (sub_cmd == GPIO_INPUT) {
-		gpio_direction_input(gpio);
 		value = gpio_get_value(gpio);
 	} else {
 		switch (sub_cmd) {
@@ -204,9 +194,6 @@ static int do_gpio(cmd_tbl_t *cmdtp, int flag, int argc, char * const argv[])
 	}
 	printf("gpio: pin %s (gpio %i) value is %lu\n",
 		str_gpio, gpio, value);
-
-	if (ret != -EBUSY)
-		gpio_free(gpio);
 
 	return value;
 }

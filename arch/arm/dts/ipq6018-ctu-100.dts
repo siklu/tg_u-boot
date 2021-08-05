@@ -24,6 +24,15 @@
 		usb1 = "/xhci@7000000";
 		i2c1 = "/i2c@78ba000";
 	};
+
+	xhci@8a00000 {
+		perst_gpio = <55>;
+	};
+
+	xhci@7000000 {
+		status = "disabled";
+	};
+
 	ess-switch {
 		switch_mac_mode = <PORT_WRAPPER_PSGMII>;
 		switch_mac_mode1 = <UNUSED>;

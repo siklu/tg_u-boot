@@ -1399,6 +1399,25 @@ int qpic_spi_nand_config(struct mtd_info *mtd)
 }
 #endif
 
+/* sanitize_string(): copied from drivers/mtd/nand/nand_base.c */
+/* Sanitize ONFI strings so we can safely print them */
+static void sanitize_string(char *s, size_t len)
+{
+	ssize_t i;
+
+	/* Null terminate */
+	s[len - 1] = 0;
+
+	/* Remove non printable chars */
+	for (i = 0; i < len - 1; i++) {
+		if (s[i] < ' ' || s[i] > 127)
+			s[i] = '?';
+	}
+
+	/* Remove trailing spaces */
+	strim(s);
+}
+
 /* Onfi probe should issue the following commands to the flash device:
  * 1. Read ID - with addr ONFI_READ_ID_ADDR.
  *              This returns the ONFI ASCII string indicating support for ONFI.
@@ -1420,6 +1439,7 @@ qpic_nand_onfi_probe(struct mtd_info *mtd)
 	uint32_t *id;
 	struct onfi_param_page *param_page;
 	int onfi_ret = NANDC_RESULT_SUCCESS;
+	struct nand_chip *chip = MTD_NAND_CHIP(mtd);
 
 #ifdef CONFIG_QPIC_SERIAL
 	uint32_t nand_ret;
@@ -1510,6 +1530,11 @@ qpic_nand_onfi_probe(struct mtd_info *mtd)
 	memmove(onfi_para.buffer, buffer, ONFI_READ_PARAM_PAGE_BUFFER_SIZE);
 	onfi_para.size = ONFI_READ_PARAM_PAGE_BUFFER_SIZE;
 #endif
+	memmove(&chip->onfi_params, buffer, sizeof(chip->onfi_params));
+	sanitize_string(chip->onfi_params.manufacturer,
+			sizeof(chip->onfi_params.manufacturer));
+	sanitize_string(chip->onfi_params.model,
+			sizeof(chip->onfi_params.model));
 
 	/* Write back vld and cmd and unlock the pipe. */
 	qpic_nand_onfi_probe_cleanup(vld, dev_cmd1);

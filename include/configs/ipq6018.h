@@ -292,6 +292,9 @@ extern loff_t board_env_size;
 #define NUM_ALT_PARTITION		16
 /* The ipq_spi_flash driver registers a nand device for the SPI flash */
 #define MTDIDS_DEFAULT			"nand0=qcom_nand.0,nand1=spi0.0"
+#ifndef MTDPARTS_DEFAULT
+#define MTDPARTS_DEFAULT		"mtdparts=qcom_nand.0:200m(first_bank),200m(second_bank),55m(data),20m(customer),-(log)"
+#endif
 
 #define CONFIG_CMD_UBI
 #define CONFIG_RBTREE

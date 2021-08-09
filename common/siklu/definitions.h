@@ -11,6 +11,6 @@
 #define ENV_NFS_DEVELOPER_ID "developer_id"
 #define ENV_NFS_STATIC_IP "ipaddr"
 
-#define USB_ETHERNET_DRIVER "r8152_eth" 
+#define USB_ETHERNET_DRIVER "r8152#0" 
 
 #endif

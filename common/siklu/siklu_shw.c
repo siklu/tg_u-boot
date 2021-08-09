@@ -52,27 +52,10 @@ static int  get_nand_params (struct mtd_info **mtd_p, unsigned *nand_maf_id,
 // show nand manufacturer info
 static void show_nand_manufacturer_info (struct mtd_info *mtd, int nand_maf_id)
 {
-	/* Try to identify manufacturer */
-	int maf_idx = 0;
 	struct nand_onfi_params *onfi_params = &MTD_NAND_CHIP(mtd)->onfi_params;
 
-	for (maf_idx = 0; nand_manuf_ids[maf_idx].id != 0x0; maf_idx++) {
-		if (nand_manuf_ids[maf_idx].id == nand_maf_id)
-			break;
-	}
-
-	// nand name
-	printf("Name: %s ", nand_manuf_ids[maf_idx].name);
-
-	// nand model
-	if (onfi_params)
-	{
-		printf("%s, ", onfi_params->model);
-	}
-	else
-	{
-		printf("%s, ", mtd->name);
-	}
+	// nand name and model
+	printf("Name: %s %s, ", onfi_params->manufacturer, onfi_params->model);
 
 	// nand Manufacturer ID
 	printf("Manufacturer ID: 0x%02x, ",nand_maf_id);

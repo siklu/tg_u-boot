@@ -932,6 +932,7 @@ static int ipq6018_eth_init(struct eth_device *eth_dev, bd_t *this)
 	char *lstatus[] = {"up", "Down"};
 	char *dp[] = {"Half", "Full"};
 	int linkup=0;
+	int link_retries = 10;
 	int mac_speed = 0, speed_clock1 = 0, speed_clock2 = 0;
 	int phy_addr, port_8033 = -1, node, aquantia_port = -1;
 	int sfp_port = -1;
@@ -955,6 +956,7 @@ static int ipq6018_eth_init(struct eth_device *eth_dev, bd_t *this)
 	 * we will proceed even if single link is up
 	 * else we will return with -1;
 	 */
+linkup_again:
 	for (i =  0; i < IPQ6018_PHY_MAX; i++) {
 
 		if (i == sfp_port) {
@@ -1169,6 +1171,10 @@ static int ipq6018_eth_init(struct eth_device *eth_dev, bd_t *this)
 	}
 
 	if (linkup <= 0) {
+		if (link_retries-- > 0) {
+			mdelay(1000);
+			goto linkup_again;
+		}
 		/* No PHY link is alive */
 		return -1;
 	}

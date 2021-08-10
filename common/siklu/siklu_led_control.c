@@ -91,8 +91,8 @@ static const siklu_dual_led_def_t siklu_led_ipq6010_ctu[] =
 {
 	[SIKLU_LED_POWER] = {
 		.method = LED_METHOD_GPIO,
-		.yellow_gpio = 24,
-		.green_gpio  = 23,
+		.yellow_gpio = 23,
+		.green_gpio  = 24,
 	},
 	[SIKLU_LED_WLAN] = {
 		.method = LED_METHOD_GPIO,

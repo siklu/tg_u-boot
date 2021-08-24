@@ -22,6 +22,7 @@
 #include <fdtdec.h>
 #include <mmc.h>
 #include <sdhci.h>
+#include <siklu/siklu_board_ctu_ipq6018.h>
 
 DECLARE_GLOBAL_DATA_PTR;
 #ifdef CONFIG_ENV_IS_IN_NAND
@@ -94,6 +95,11 @@ int board_init(void)
 	int ret;
 	uint32_t start_blocks;
 	uint32_t size_blocks;
+
+
+	if (!fdt_node_check_compatible(gd->fdt_blob, 0, "siklu,ipq6018-ctu")) {
+		siklu_ctu_ipq6018_power_leds_init();
+	}
 
 #ifdef CONFIG_IPQ_REPORT_L2ERR
         u32 l2esr;

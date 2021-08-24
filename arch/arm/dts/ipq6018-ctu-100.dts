@@ -15,6 +15,7 @@
 #include "ipq6018-soc.dtsi"
 / {
 	model = "Siklu cTU 100";
+	compatible = "siklu,ipq6018-ctu", "qcom,ipq6018";
 	machid = <0x9010010>;
 	config_name = "config@ctu-100";
 

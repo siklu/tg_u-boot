@@ -12,12 +12,13 @@
  */
 #define SK_LOG_NFS(...) printf("Siklu NFS: " __VA_ARGS__)
 
-static int nfs_get_file(const char *path, const char *file, char *address) {
+static int nfs_tftp_get_file(const char *path, const char *file, char *address, bool is_tftp) {
 	char cmd[1024];
 	
 	snprintf(cmd, sizeof(cmd), 
-			"nfs \"%s\" \"%s:%s/%s\"", address, env_get(ENV_NFS_SERVERIP), path, file);
-	
+			"%s \"%s\" \"%s:%s/%s\"", (is_tftp ? "tftp" : "nfs"),
+			address, env_get(ENV_NFS_SERVERIP), path, file);
+
 	return run_command(cmd, 0);
 }
 
@@ -49,16 +50,16 @@ int format_rootpath_and_developer_id(const char *rootpath, const char *developer
 }
 
 static int 
-load_images(const char *rootpath) {
+load_images(const char *rootpath, bool is_tftp) {
 	int ret;
 	
-	ret = nfs_get_file(rootpath, dtb_path(), dtb_load_address());
+	ret = nfs_tftp_get_file(rootpath, dtb_path(), dtb_load_address(), is_tftp);
 	if (ret) {
 		SK_LOG_NFS("Failed to get %s from the server\n", dtb_path());
 		return CMD_RET_FAILURE;
 	}
 
-	ret = nfs_get_file(rootpath, kernel_path(), kernel_load_address());
+	ret = nfs_tftp_get_file(rootpath, kernel_path(), kernel_load_address(), is_tftp);
 	if (ret) {
 		SK_LOG_NFS("Failed to get %s from the server\n", kernel_path());
 		return CMD_RET_FAILURE;
@@ -187,11 +188,15 @@ do_nfs_boot(cmd_tbl_t *cmdtp, int flag, int argc,
 	int ret;
 	char rootpath[1024];
 	bool usb = false;
+	bool is_tftp = false;
 	
 	/** Check for USB */
 	if (argc == 2) {
 		if (strcmp(argv[1], "usb") == 0) {
 			usb = true;
+		} else if (strcmp(argv[1], "usb_tftp") == 0) {
+			usb = true;
+			is_tftp = true;
 		} else {
 			return CMD_RET_USAGE;
 		}
@@ -219,7 +224,7 @@ do_nfs_boot(cmd_tbl_t *cmdtp, int flag, int argc,
 		return CMD_RET_FAILURE;
 	}
 	
-	ret = load_images(rootpath);
+	ret = load_images(rootpath, is_tftp);
 	if (ret) {
 		return CMD_RET_FAILURE;
 	}

@@ -241,6 +241,6 @@ U_BOOT_CMD(
 		2,
 		0,
 		do_nfs_boot,
-		"siklu_nfs_boot [usb]",
+		"siklu_nfs_boot [usb | usb_tftp]",
 		"Loads the system from NFS\n"
 );

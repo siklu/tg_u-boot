@@ -52,7 +52,7 @@ static void fit_dtb_addr(void)
 	if (!fit_check_format(fit_hdr))
 		return;
 
-	fdt_offset = fit_image_get_node(fit_hdr, "fdt@1");
+	fdt_offset = fit_image_get_node(fit_hdr, "fdt-qcom_ipq6018-siklu-ctu-100.dtb");
 	if (fdt_offset < 0)
 		return;
 

@@ -69,7 +69,7 @@ static int load_from_ubifs(void) {
  * @param bank a valid software bank.
  */
 static void set_bootargs_for_bank(struct software_bank_t *bank) {
-	char bootargs[1024];
+	static char bootargs[1024];
 	
 	snprintf(bootargs, sizeof(bootargs),
 			 "ubi.mtd=%s root=ubi0:%s rootfstype=ubifs",

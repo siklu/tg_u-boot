@@ -8,7 +8,7 @@
 #define BOOT_DIR "/boot"
 
 void setup_bootargs(const char *bootargs) {
-	char formatted_bootargs[1024];
+	static char formatted_bootargs[1024];
 	const char *mtdparts;
 	const char *old_bootargs;
 
@@ -94,9 +94,9 @@ static char *boot_command(void)
 }
 
 int load_kernel_image(void) {
-	char buff[256];
+	static char buff[256];
+	static char formatted_bootargs[1024];
 	int ret;
-	char formatted_bootargs[1024];
 	const char *old_bootargs;
 	char *boot_cmd_format;
 	unsigned long fdt_addr;

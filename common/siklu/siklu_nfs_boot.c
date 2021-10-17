@@ -18,7 +18,7 @@
 #define USB_RESET_GPIO_PIN 	55
 
 static int nfs_get_file(const char *path, const char *file, char *address) {
-	char cmd[1024];
+	static char cmd[1024];
 	
 	snprintf(cmd, sizeof(cmd), 
 			"nfs \"%s\" \"%s:%s/%s\"", address, getenv(ENV_NFS_SERVERIP), path, file);
@@ -99,9 +99,9 @@ setup_rootpath(char *output, size_t output_size) {
 
 static void 
 setup_nfs_bootargs(const char *rootpath, bool usb) {
-	char bootargs[1024];
-	char nfsroot[512];
-	char ip[512];
+	static char bootargs[1024];
+	static char nfsroot[512];
+	static char ip[512];
 	const char *netmask;
 	const char *nfs_netdev = CONFIG_SIKLU_NFS_NETDEV;
 	const char *gateway;
@@ -197,9 +197,8 @@ static int
 do_nfs_boot(cmd_tbl_t *cmdtp, int flag, int argc,
 			char *const argv[])
 {
-
+	static char rootpath[1024];
 	int ret;
-	char rootpath[1024];
 	bool usb = false;
 
 	/** Check for USB */

@@ -26,7 +26,7 @@ static int nfs_get_file(const char *path, const char *file, char *address) {
 	return run_command(cmd, 0);
 }
 
-int format_rootpath_and_developer_id(const char *rootpath, const char *developer_id, 
+static int format_rootpath_and_developer_id(const char *rootpath, const char *developer_id, 
 		char *output, size_t output_size) {
 	size_t ret;
 	

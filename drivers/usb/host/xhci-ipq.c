@@ -30,11 +30,13 @@
 /* Declare global data pointer */
 DECLARE_GLOBAL_DATA_PTR;
 
+#define SUPPORTED_GPIO_RESET 2
 struct ipq_xhci_platdata {
 	fdt_addr_t hcd_base;
 	unsigned int rst_ctrl;
 	unsigned int hs_only;
-	unsigned int rst_gpio;
+	u32 rst_gpio[SUPPORTED_GPIO_RESET];
+	int rst_gpio_count;
 };
 
 struct ipq_xhci {
@@ -50,6 +52,7 @@ void ipq_reset_usb_phy(void *data)
 	unsigned int gcc_rst_ctrl;
 	struct ipq_xhci_platdata *platdata;
 	struct ipq_xhci *ipq = (struct ipq_xhci *)data;
+	int i;
 
 	platdata = dev_get_platdata(ipq->dev);
 	if (platdata == NULL) {
@@ -57,10 +60,10 @@ void ipq_reset_usb_phy(void *data)
 		return;
 	}
 
-	if(platdata->rst_gpio != -1) {
-		gpio_direction_output(platdata->rst_gpio, GPIO_OUT_LOW);
+	for (i = 0; i < platdata->rst_gpio_count; ++i) {
+		gpio_direction_output(platdata->rst_gpio[i], GPIO_OUT_LOW);
 		mdelay(1000);
-		gpio_direction_output(platdata->rst_gpio, GPIO_OUT_HIGH);
+		gpio_direction_output(platdata->rst_gpio[i], GPIO_OUT_HIGH);
 	}
 
 	gcc_rst_ctrl = platdata->rst_ctrl;
@@ -170,7 +173,6 @@ static int xhci_ofdata_to_platdata(struct udevice *dev)
 {
 	struct ipq_xhci_platdata *platdata;
 	const void *blob = gd->fdt_blob;
-	int rst_gpio;
 
 	platdata = dev_get_platdata(dev);
 	if (platdata == NULL) {
@@ -186,14 +188,13 @@ static int xhci_ofdata_to_platdata(struct udevice *dev)
 
 	platdata->rst_ctrl = fdtdec_get_int(blob, dev->of_offset, "rst_ctrl", 0);
 	platdata->hs_only = fdtdec_get_int(blob, dev->of_offset, "hs_only", 0);
-
-	rst_gpio = fdtdec_get_int(blob, dev->of_offset, "perst_gpio", 0);
-	if (rst_gpio <= 0) {
-		debug("Error: Can't get perst_gpio\n");
-		rst_gpio = -1;
-	}
 	
-	platdata->rst_gpio = rst_gpio;
+	platdata->rst_gpio_count = fdtdec_get_int_array_count(blob, dev->of_offset, "perst_gpio",
+					platdata->rst_gpio, ARRAY_SIZE(platdata->rst_gpio));
+	if (platdata->rst_gpio_count < 0) {
+		printf("Warning: getting reset pins: %d\n", platdata->rst_gpio_count);
+		platdata->rst_gpio_count = 0;
+	}
 
 	return 0;
 }

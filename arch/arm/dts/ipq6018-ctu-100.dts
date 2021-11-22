@@ -61,5 +61,16 @@
 			};
 		};
 	};
+
+	gpio {
+		gpio43 {
+			gpio = <43>;
+			func = <0>;
+			out  = <GPIO_OUTPUT>;
+			pull = <GPIO_PULL_UP>;
+			drvstr = <GPIO_8MA>;
+			oe = <GPIO_OE_ENABLE>;
+		};
+	};
 };
 

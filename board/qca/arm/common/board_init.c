@@ -90,12 +90,26 @@ __weak void sdi_disable(void)
 	return;
 }
 
+/**
+ * Add an option to initialize GPIOs without any SPI/NAND/etc. 
+ */
+void siklu_ipq_init_gpio(void) {
+	printf("Initialzing GPIOs!\n");
+
+	int gpio_node;
+
+	gpio_node = fdt_path_offset(gd->fdt_blob, "/gpio");
+	if (gpio_node)
+		qca_gpio_init(gpio_node);
+}
+
 int board_init(void)
 {
 	int ret;
 	uint32_t start_blocks;
 	uint32_t size_blocks;
 
+	siklu_ipq_init_gpio();
 
 	if (!fdt_node_check_compatible(gd->fdt_blob, 0, "siklu,ipq6018-ctu")) {
 		siklu_ctu_ipq6018_power_leds_init();

@@ -28,7 +28,7 @@
 	};
 
 	xhci@8a00000 {
-		perst_gpio = <55>;
+		perst_gpio = <55 43>;
 	};
 
 	xhci@7000000 {

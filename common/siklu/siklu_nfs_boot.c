@@ -15,7 +15,6 @@
  * Helper to keep logging easy.
  */
 #define SK_LOG_NFS(...) printf("Siklu NFS: " __VA_ARGS__)
-#define USB_RESET_GPIO_PIN 	55
 
 static int nfs_get_file(const char *path, const char *file, char *address) {
 	static char cmd[1024];
@@ -239,10 +238,6 @@ do_nfs_boot(cmd_tbl_t *cmdtp, int flag, int argc,
 
 	setup_nfs_bootargs(rootpath, usb);
 
-	// usb reset gpio pin must to be set off after usb start so that 
-	// linux kernel usb reset will succeed
-	gpio_set_value(USB_RESET_GPIO_PIN, 0);
-	
 	load_kernel_image();
 
 	return CMD_RET_FAILURE;

@@ -71,6 +71,13 @@
 			drvstr = <GPIO_8MA>;
 			oe = <GPIO_OE_ENABLE>;
 		};
+
+		gpio24 {
+			gpio = <24>;
+			func = <2>;
+			pull = <GPIO_PULL_UP>;
+			oe = <GPIO_OE_ENABLE>;
+		};
 	};
 };
 

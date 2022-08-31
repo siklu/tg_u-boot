@@ -5,6 +5,7 @@
 #define ALLOCATED_MAC_ADDRESSES	  "allocated-mac-addresses"
 #define DEFAULT_ALLOCATED_MACS 8
 #define PROP_CURRENT_BANK "current-bank"
+#define PROP_BOOT_TRIES_LEFT "boot_tries_left"
 
 #define ENV_NFS_SERVERIP "serverip"
 #define ENV_NFS_ROOTPATH "rootpath"

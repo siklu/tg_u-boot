@@ -82,6 +82,7 @@ static int do_nand_boot(cmd_tbl_t *cmdtp, int flag, int argc,
 	int ret;
 
 	bank = bank_management_get_current_bank();
+	bank = bank_management_switch_current_bank(bank);
 
 	printk("Loading images from bank %s...\n", bank->bank_label);
 	ret = init_and_mount_ubifs_bank(bank);

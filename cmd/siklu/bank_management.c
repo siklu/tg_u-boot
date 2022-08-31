@@ -70,3 +70,42 @@ fail:
 	
 	return bank;
 }
+
+struct software_bank_t* bank_management_switch_current_bank(struct software_bank_t *bank) {
+	u_char *fdt = NULL;
+	int8_t boot_tries_left = -1; // negative is disabled
+	const char *config_boot_tries_left;
+
+	fdt = siklu_read_fdt_from_mtd_part(CONFIG_SIKLU_BANK_MGMT_MTD_PART);
+	if (! fdt) {
+		printk(KERN_ERR "Could not read bank management info from \"%s\"\n",
+			   CONFIG_SIKLU_BANK_MGMT_MTD_PART);
+		return bank;
+	}
+
+	config_boot_tries_left = siklu_fdt_getprop_string(fdt, "/", PROP_BOOT_TRIES_LEFT, NULL);
+	if (IS_ERR(config_boot_tries_left)) {
+		printf("Could not read boot_tries_left\n");
+		return bank;
+	}
+
+	printf("boot_tries_left = %s\n", config_boot_tries_left);
+	boot_tries_left = simple_strtol(config_boot_tries_left, NULL, 10);
+	if (boot_tries_left < 0) {
+		return bank;
+	} else {
+		// decrement boot_tries_left for next boot
+		char boot_tries_left_str[5]; // "-123\0"
+		if (0 < snprintf(boot_tries_left_str, sizeof(boot_tries_left_str), "%d", boot_tries_left - 1)) {
+			siklu_fdt_setprop_string(fdt, "/", PROP_BOOT_TRIES_LEFT, boot_tries_left_str);
+		}
+	}
+	if (boot_tries_left == 0) {
+		// out of tries, switch bank
+		bank = (bank == &first_bank) ? &second_bank : &first_bank;
+		siklu_fdt_setprop_string(fdt, "/", PROP_CURRENT_BANK, bank->bank_label);
+	}
+	siklu_write_fdt_to_mtd_part(CONFIG_SIKLU_BANK_MGMT_MTD_PART, fdt);
+
+	return bank;
+}

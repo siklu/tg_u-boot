@@ -247,6 +247,19 @@
 	phy-reset-gpios = <&cpm_gpio1 9 GPIO_ACTIVE_LOW>;
 };
 
+&cps_eth0 {
+	status = "okay";
+	phy-mode = "1000base-x";
+	marvell,sfp-tx-disable-gpio = <&cps_gpio0 8 GPIO_ACTIVE_HIGH>;
+	pinctrl-0 = <&cps_sfp_eth0>;
+	managed = "in-band-status";
+};
+
+&cps_ethernet {
+	status = "okay";
+};
+
+
 &cps_pinctl {
 	pin-func = <0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff
                 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff 0xff
@@ -266,6 +279,11 @@
 		marvell,function = <0>;
 	};
 	
+	cps_sfp_eth0: cps-sfp-eth0 {
+		marvell,pins = <39>;
+		marvell,function = <0>;
+	};
+
 	cps_nand_pins: cps-nand-pins {
 		marvell,pins = <13>;
 		marvell,function = <2>;
@@ -285,6 +303,8 @@
 		marvell,pins = <0 1>;
 		marvell,function = <8>;
 	};
+
+
 };
 
 &cps_comphy {
@@ -295,7 +315,8 @@
 		phy-type = <PHY_TYPE_PEX0>;
 	};
 	phy2 {
-		phy-type = <PHY_TYPE_UNCONNECTED>;
+		phy-type = <PHY_TYPE_SGMII0>;
+		phy-speed = <PHY_SPEED_1_25G>;
 	};
 	phy3 {
 		phy-type = <PHY_TYPE_UNCONNECTED>;

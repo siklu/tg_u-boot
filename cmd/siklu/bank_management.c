@@ -71,7 +71,7 @@ fail:
 	return bank;
 }
 
-struct software_bank_t* bank_management_switch_current_bank(struct software_bank_t *bank) {
+struct software_bank_t* bank_management_handle_auto_switch(struct software_bank_t *bank) {
 	u_char *fdt = NULL;
 	int8_t boot_tries_left = -1; // negative is disabled
 	const char *config_boot_tries_left;

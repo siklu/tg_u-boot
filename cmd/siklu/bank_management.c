@@ -92,19 +92,20 @@ struct software_bank_t* bank_management_switch_current_bank(struct software_bank
 	printf("SIKLU BOOT: boot_tries_left = %s\n", config_boot_tries_left);
 	boot_tries_left = simple_strtol(config_boot_tries_left, NULL, 10);
 	if (boot_tries_left < 0) {
+		// do nothing
 		return bank;
-	} else {
-		// decrement boot_tries_left for next boot
-		char boot_tries_left_str[5]; // "-123\0"
-		if (0 < snprintf(boot_tries_left_str, sizeof(boot_tries_left_str), "%d", boot_tries_left - 1)) {
-			siklu_fdt_setprop_string(fdt, "/", PROP_BOOT_TRIES_LEFT, boot_tries_left_str);
-		}
-	}
-	if (boot_tries_left == 0) {
+	} else if (boot_tries_left == 0) {
 		// out of tries, switch bank
 		bank = (bank == &first_bank) ? &second_bank : &first_bank;
 		siklu_fdt_setprop_string(fdt, "/", PROP_CURRENT_BANK, bank->bank_label);
 	}
+
+	// decrement boot_tries_left for next boot
+	char boot_tries_left_str[5]; // "-123\0"
+	if (0 < snprintf(boot_tries_left_str, sizeof(boot_tries_left_str), "%d", boot_tries_left - 1)) {
+		siklu_fdt_setprop_string(fdt, "/", PROP_BOOT_TRIES_LEFT, boot_tries_left_str);
+	}
+
 	siklu_write_fdt_to_mtd_part(CONFIG_SIKLU_BANK_MGMT_MTD_PART, fdt);
 
 	return bank;

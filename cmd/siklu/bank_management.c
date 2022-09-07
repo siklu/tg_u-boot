@@ -85,7 +85,7 @@ struct software_bank_t* bank_management_handle_auto_switch(struct software_bank_
 
 	config_boot_tries_left = siklu_fdt_getprop_string(fdt, "/", PROP_BOOT_TRIES_LEFT, NULL);
 	if (IS_ERR(config_boot_tries_left)) {
-		printf("Could not read boot_tries_left\n");
+		printf("SIKLU_BOOT: Could not read boot_tries_left\n");
 		return bank;
 	}
 
@@ -96,8 +96,12 @@ struct software_bank_t* bank_management_handle_auto_switch(struct software_bank_
 		return bank;
 	} else if (boot_tries_left == 0) {
 		// out of tries, switch bank
-		bank = (bank == &first_bank) ? &second_bank : &first_bank;
-		siklu_fdt_setprop_string(fdt, "/", PROP_CURRENT_BANK, bank->bank_label);
+		if (bank != &first_bank && bank != &second_bank) {
+			printf("SIKLU_BOOT: Could not switch bank, wrong bank specified\n");
+		} else {
+			bank = (bank == &first_bank) ? &second_bank : &first_bank;
+			siklu_fdt_setprop_string(fdt, "/", PROP_CURRENT_BANK, bank->bank_label);
+		}
 	}
 
 	// decrement boot_tries_left for next boot

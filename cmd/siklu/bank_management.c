@@ -89,7 +89,7 @@ struct software_bank_t* bank_management_switch_current_bank(struct software_bank
 		return bank;
 	}
 
-	printf("boot_tries_left = %s\n", config_boot_tries_left);
+	printf("SIKLU BOOT: boot_tries_left = %s\n", config_boot_tries_left);
 	boot_tries_left = simple_strtol(config_boot_tries_left, NULL, 10);
 	if (boot_tries_left < 0) {
 		return bank;

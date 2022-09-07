@@ -75,6 +75,7 @@ struct software_bank_t* bank_management_handle_auto_switch(struct software_bank_
 	u_char *fdt = NULL;
 	int8_t boot_tries_left = -1; // negative is disabled
 	const char *config_boot_tries_left;
+	bool do_fdt_write = false;
 
 	fdt = siklu_read_fdt_from_mtd_part(CONFIG_SIKLU_BANK_MGMT_MTD_PART);
 	if (! fdt) {
@@ -101,6 +102,7 @@ struct software_bank_t* bank_management_handle_auto_switch(struct software_bank_
 		} else {
 			bank = (bank == &first_bank) ? &second_bank : &first_bank;
 			siklu_fdt_setprop_string(fdt, "/", PROP_CURRENT_BANK, bank->bank_label);
+			do_fdt_write = true;
 		}
 	}
 
@@ -108,9 +110,12 @@ struct software_bank_t* bank_management_handle_auto_switch(struct software_bank_
 	char boot_tries_left_str[5]; // "-123\0"
 	if (0 < snprintf(boot_tries_left_str, sizeof(boot_tries_left_str), "%d", boot_tries_left - 1)) {
 		siklu_fdt_setprop_string(fdt, "/", PROP_BOOT_TRIES_LEFT, boot_tries_left_str);
+		do_fdt_write = true;
 	}
 
-	siklu_write_fdt_to_mtd_part(CONFIG_SIKLU_BANK_MGMT_MTD_PART, fdt);
+	if (do_fdt_write) {
+		siklu_write_fdt_to_mtd_part(CONFIG_SIKLU_BANK_MGMT_MTD_PART, fdt);
+	}
 
 	return bank;
 }

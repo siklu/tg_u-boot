@@ -28,7 +28,7 @@ create_bank_management_info_for_bank(const struct software_bank_t *bank) {
 	siklu_write_fdt_to_mtd_part(CONFIG_SIKLU_BANK_MGMT_MTD_PART, fdt);
 }
 
-struct software_bank_t* bank_management_get_current_bank(void) {
+struct software_bank_t* bank_management_get_current_bank(bool do_failover) {
 	u_char *fdt = NULL;
 	struct software_bank_t *bank;
 	const char *config_bank_name;
@@ -47,11 +47,15 @@ struct software_bank_t* bank_management_get_current_bank(void) {
 	}
 	
 	if (strcmp(config_bank_name, first_bank.bank_label) == 0) {
-		bank = &first_bank;
+		bank = do_failover ? &second_bank : &first_bank;
 	} else if (strcmp(config_bank_name, second_bank.bank_label) == 0) {
-		bank = &second_bank;
+		bank = do_failover ? &first_bank : &second_bank;
 	} else {
 		goto fail_free;
+	}
+	if (do_failover) {
+		siklu_fdt_setprop_string(fdt, "/", PROP_CURRENT_BANK, bank->bank_label);
+		siklu_write_fdt_to_mtd_part(CONFIG_SIKLU_BANK_MGMT_MTD_PART, fdt);
 	}
 	
 	free(fdt);
@@ -71,51 +75,40 @@ fail:
 	return bank;
 }
 
-struct software_bank_t* bank_management_handle_auto_switch(struct software_bank_t *bank) {
+int bank_management_get_boot_tries_left() {
 	u_char *fdt = NULL;
 	int8_t boot_tries_left = -1; // negative is disabled
 	const char *config_boot_tries_left;
-	bool do_fdt_write = false;
+	char boot_tries_left_str[5]; // "-123\0"
 
 	fdt = siklu_read_fdt_from_mtd_part(CONFIG_SIKLU_BANK_MGMT_MTD_PART);
 	if (! fdt) {
 		printk(KERN_ERR "Could not read bank management info from \"%s\"\n",
 			   CONFIG_SIKLU_BANK_MGMT_MTD_PART);
-		return bank;
+		return -1;
 	}
 
 	config_boot_tries_left = siklu_fdt_getprop_string(fdt, "/", PROP_BOOT_TRIES_LEFT, NULL);
 	if (IS_ERR(config_boot_tries_left)) {
 		printf("SIKLU_BOOT: Could not read boot_tries_left\n");
-		return bank;
+
+		goto fail_free;
 	}
 
 	printf("SIKLU BOOT: boot_tries_left = %s\n", config_boot_tries_left);
 	boot_tries_left = simple_strtol(config_boot_tries_left, NULL, 10);
 	if (boot_tries_left < 0) {
 		// do nothing
-		return bank;
-	} else if (boot_tries_left == 0) {
-		// out of tries, switch bank
-		if (bank != &first_bank && bank != &second_bank) {
-			printf("SIKLU_BOOT: Could not switch bank, wrong bank specified\n");
-		} else {
-			bank = (bank == &first_bank) ? &second_bank : &first_bank;
-			siklu_fdt_setprop_string(fdt, "/", PROP_CURRENT_BANK, bank->bank_label);
-			do_fdt_write = true;
-		}
+		goto fail_free;
 	}
 
 	// decrement boot_tries_left for next boot
-	char boot_tries_left_str[5]; // "-123\0"
 	if (0 < snprintf(boot_tries_left_str, sizeof(boot_tries_left_str), "%d", boot_tries_left - 1)) {
 		siklu_fdt_setprop_string(fdt, "/", PROP_BOOT_TRIES_LEFT, boot_tries_left_str);
-		do_fdt_write = true;
-	}
-
-	if (do_fdt_write) {
 		siklu_write_fdt_to_mtd_part(CONFIG_SIKLU_BANK_MGMT_MTD_PART, fdt);
 	}
 
-	return bank;
+fail_free:
+	free(fdt);
+	return boot_tries_left;
 }

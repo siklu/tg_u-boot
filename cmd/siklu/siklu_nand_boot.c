@@ -81,8 +81,8 @@ static int do_nand_boot(cmd_tbl_t *cmdtp, int flag, int argc,
 	struct software_bank_t *bank;
 	int ret;
 
-	bank = bank_management_get_current_bank();
-	bank = bank_management_handle_auto_switch(bank);
+	bool do_failover = 0 == bank_management_get_boot_tries_left() ? true : false;
+	bank = bank_management_get_current_bank(do_failover);
 
 	printk("Loading images from bank %s...\n", bank->bank_label);
 	ret = init_and_mount_ubifs_bank(bank);

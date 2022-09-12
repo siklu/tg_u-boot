@@ -75,7 +75,7 @@ fail:
 	return bank;
 }
 
-int bank_management_get_boot_tries_left() {
+int8_t bank_management_get_boot_tries_left() {
 	u_char *fdt = NULL;
 	int8_t boot_tries_left = -1; // negative is disabled
 	const char *config_boot_tries_left;
@@ -91,7 +91,6 @@ int bank_management_get_boot_tries_left() {
 	config_boot_tries_left = siklu_fdt_getprop_string(fdt, "/", PROP_BOOT_TRIES_LEFT, NULL);
 	if (IS_ERR(config_boot_tries_left)) {
 		printf("SIKLU_BOOT: Could not read boot_tries_left\n");
-
 		goto fail_free;
 	}
 

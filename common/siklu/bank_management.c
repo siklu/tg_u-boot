@@ -75,7 +75,7 @@ fail:
 	return bank;
 }
 
-int8_t bank_management_get_boot_tries_left() {
+int8_t bank_management_get_boot_tries_left(void) {
 	u_char *fdt = NULL;
 	int8_t boot_tries_left = -1; // negative is disabled
 	const char *config_boot_tries_left;

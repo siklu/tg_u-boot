@@ -18,6 +18,6 @@ struct software_bank_t* bank_management_get_current_bank(bool do_failover);
  * Get current boot_tries_left, decrease value for next boot
  * @return count of boot tries left or -1 on fail
  */
-int8_t bank_management_get_boot_tries_left();
+int8_t bank_management_get_boot_tries_left(void);
 
 #endif

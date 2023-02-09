@@ -55,7 +55,7 @@ load_images(const char *rootpath, bool is_tftp) {
 
 	ret = nfs_tftp_get_file(rootpath, kernel_path(), kernel_load_address(), is_tftp);
 	if (ret) {
-		update_fit_dtb_load_address();
+		fit_update_dtb_addr();
 		ret = nfs_tftp_get_file(rootpath, kernel_fit_path(), kernel_load_address(), is_tftp);
 		if (ret) {
 			printk(KERN_ERR "Failed to get both %s and %s from server\n", kernel_path(), kernel_fit_path());

@@ -36,9 +36,40 @@ char *kernel_path(void)
 		return BOOT_DIR "/zImage";
 }
 
+char *kernel_fit_path(void) {
+	return BOOT_DIR "/fitImage";
+}
+
+void fit_update_dtb_addr(void)
+{
+	void *fit_hdr = (void *) simple_strtoul(kernel_load_address(), NULL, 16);
+	int fdt_offset;
+	const void *fdt_data;
+	size_t fdt_len;
+
+	if (genimg_get_format(fit_hdr) != IMAGE_FORMAT_FIT)
+		return;
+
+	if (!fit_check_format(fit_hdr))
+		return;
+
+	fdt_offset = fit_image_get_node(fit_hdr, "fdt-qcom_ipq6018-siklu-ctu-100.dtb");
+	if (fdt_offset < 0)
+		return;
+
+	if (fit_image_get_data(fit_hdr, fdt_offset, &fdt_data, &fdt_len))
+		return;
+
+	setenv_hex("is_fit_image", 1UL);
+
+	setenv_hex("fdt_addr_r", (unsigned long) fdt_data);
+}
+
 char *dtb_load_address(void)
 {
-	return env_get("fdt_addr_r");
+	char *env = env_get("fdt_addr_r");
+
+	return env ? env : "0";
 }
 
 char *dtb_path(void)
@@ -53,7 +84,7 @@ char *dtb_path(void)
 static char *boot_command(void)
 {
 	if (IS_ENABLED(CONFIG_ARM64))
-		return "booti";
+		return "bootm";
 	else
 		return "bootz";
 }
@@ -63,6 +94,7 @@ int load_kernel_image(void) {
 	int ret;
 	char formatted_bootargs[1024];
 	const char *old_bootargs;
+	char *boot_cmd_format;
 	unsigned int fdt_addr;
 
 	if (strict_strtoul(dtb_load_address(), 16, &fdt_addr) < 0)
@@ -77,7 +109,9 @@ int load_kernel_image(void) {
 		env_set("bootargs", formatted_bootargs);
 	}
 
-	snprintf(buff, sizeof(buff), "%s %s - %s", boot_command(),
+	boot_cmd_format = (env_get("is_fit_image") != NULL) ? "%s %s" :  "%s %s - %s";
+
+	snprintf(buff, sizeof(buff), boot_cmd_format, boot_command(),
 			kernel_load_address(), dtb_load_address());
 	
 	ret = run_command(buff, 0);

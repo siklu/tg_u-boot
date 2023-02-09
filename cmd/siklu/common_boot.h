@@ -26,6 +26,17 @@ char *kernel_load_address(void);
 char *kernel_path(void);
 
 /**
+ * Kernel fit file path
+ * @return path to kernel fit image location on filesystem
+ */
+char *kernel_fit_path(void);
+
+/**
+ * Updates FIT device tree load address
+ */
+void fit_update_dtb_addr(void);
+
+/**
  * Device tree load address
  * @return hex string of DT load address
  */

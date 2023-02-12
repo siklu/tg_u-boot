@@ -60,7 +60,7 @@ void fit_update_dtb_addr(void)
 	if (fit_image_get_data(fit_hdr, fdt_offset, &fdt_data, &fdt_len))
 		return;
 
-	env_set_hex("is_fit_image", 1UL);
+	env_set_ulong("is_fit_image", 1UL);
 
 	env_set_hex("fdt_addr_r", (unsigned long) fdt_data);
 }
@@ -83,8 +83,10 @@ char *dtb_path(void)
 
 static char *boot_command(void)
 {
-	if (IS_ENABLED(CONFIG_ARM64))
-		return "bootm";
+	if (env_get("is_fit_image"))
+    	return "bootm";
+  	else if (IS_ENABLED(CONFIG_ARM64))
+		return "booti";
 	else
 		return "bootz";
 }

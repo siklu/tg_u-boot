@@ -54,7 +54,7 @@ static int load_from_ubifs(void) {
 		return ret;
 	}
 
-	env_set("is_fit_image", NULL);
+	env_set("is_fit_image", 0ul);
 
 	ret = ubifs_load(dtb_path(), dtb_addr, 0);
 	if (ret) {

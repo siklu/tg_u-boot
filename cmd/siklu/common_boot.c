@@ -83,7 +83,8 @@ char *dtb_path(void)
 
 static char *boot_command(void)
 {
-	if (env_get("is_fit_image"))
+	char *env = env_get("is_fit_image");
+	if (env && simple_strtoul(env, NULL, 10))
     	return "bootm";
   	else if (IS_ENABLED(CONFIG_ARM64))
 		return "booti";
@@ -111,7 +112,8 @@ int load_kernel_image(void) {
 		env_set("bootargs", formatted_bootargs);
 	}
 
-	boot_cmd_format = (env_get("is_fit_image") != NULL) ? "%s %s" :  "%s %s - %s";
+	char *env = env_get("is_fit_image");
+	boot_cmd_format = (env && simple_strtoul(env, NULL, 10)) ? "%s %s" :  "%s %s - %s";
 
 	snprintf(buff, sizeof(buff), boot_cmd_format, boot_command(),
 			kernel_load_address(), dtb_load_address());

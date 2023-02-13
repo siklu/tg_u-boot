@@ -64,6 +64,8 @@ load_images(const char *rootpath, bool is_tftp) {
 		return CMD_RET_SUCCESS;
 	}
 
+	disable_fit_image()
+
 	ret = nfs_tftp_get_file(rootpath, dtb_path(), dtb_load_address(), is_tftp);
 	if (ret) {
 		SK_LOG_NFS("Failed to get %s from the server\n", dtb_path());

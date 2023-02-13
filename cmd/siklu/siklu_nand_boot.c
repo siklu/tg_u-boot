@@ -54,6 +54,8 @@ static int load_from_ubifs(void) {
 		return ret;
 	}
 
+	disable_fit_image()
+
 	ret = ubifs_load(dtb_path(), dtb_addr, 0);
 	if (ret) {
 		printk(KERN_ERR "Failed to load %s\n", dtb_path());

@@ -3,6 +3,8 @@
  * Copyright (C) 2016 Stefan Roese <sr@denx.de>
  */
 
+#include <linux/sizes.h>
+
 #ifndef _CONFIG_MVEBU_ARMADA_8K_H
 #define _CONFIG_MVEBU_ARMADA_8K_H
 

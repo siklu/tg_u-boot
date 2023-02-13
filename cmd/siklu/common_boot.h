@@ -34,7 +34,7 @@ char *kernel_fit_path(void);
 /**
  * Updates FIT device tree load address
  */
-void fit_update_dtb_addr(void);
+void enable_fit_image(void);
 
 /**
  * Device tree load address

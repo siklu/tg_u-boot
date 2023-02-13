@@ -40,30 +40,6 @@ char *kernel_fit_path(void) {
 	return BOOT_DIR "/fitImage";
 }
 
-void fit_update_dtb_addr(void)
-{
-	void *fit_hdr = (void *) simple_strtoul(kernel_load_address(), NULL, 16);
-	int fdt_offset;
-	const void *fdt_data;
-	size_t fdt_len;
-
-	if (genimg_get_format(fit_hdr) != IMAGE_FORMAT_FIT)
-		return;
-
-	if (!fit_check_format(fit_hdr))
-		return;
-
-	fdt_offset = fit_image_get_node(fit_hdr, "fdt-marvell_armada-8040-n366.dtb");
-	if (fdt_offset < 0)
-		return;
-
-	if (fit_image_get_data(fit_hdr, fdt_offset, &fdt_data, &fdt_len))
-		return;
-
-	env_set_ulong("is_fit_image", 1UL);
-
-	env_set_hex("fdt_addr_r", (unsigned long) fdt_data);
-}
 
 char *dtb_load_address(void)
 {
@@ -86,16 +62,20 @@ static bool is_fit_image(void) {
 	return env && simple_strtoul(env, NULL, 10);
 }
 
+void enable_fit_image(void)
+{
+	env_set_ulong("is_fit_image", 1UL);
+}
+
 void disable_fit_image() {
 	env_set_ulong("is_fit_image", 0UL);
-	env_set_default("fdt_addr_r", NULL);
 }
 
 static char *boot_command(void)
 {
 	if (is_fit_image())
 		return "bootm";
-  	else if (IS_ENABLED(CONFIG_ARM64))
+  	else if	(IS_ENABLED(CONFIG_ARM64))
 		return "booti";
 	else
 		return "bootz";
@@ -108,23 +88,42 @@ int load_kernel_image(void) {
 	const char *old_bootargs;
 	char *boot_cmd_format;
 	unsigned int fdt_addr;
+	char *fdt_file;
+	char *vendor;
 
-	if (strict_strtoul(dtb_load_address(), 16, &fdt_addr) < 0)
-		return -EINVAL;
-
-	const char* fdt_param = siklu_fdt_getprop_string(fdt_addr, "/chosen", "bootargs", NULL);
-
-	if (!IS_ERR(fdt_param)) {
-		old_bootargs = env_get("bootargs");
-		snprintf(formatted_bootargs, sizeof(formatted_bootargs), "%s %s", old_bootargs, fdt_param);
-		printf("SIKLU BOOT: Added DTS-specific bootargs: %s\n", fdt_param);
-		env_set("bootargs", formatted_bootargs);
+	if (is_fit_image()) {
+		fdt_file = env_get("fdtfile");
+		if (fdt_file == NULL) {
+			printk(KERN_ERR "Could not find FDT file environment variable");
+			return -EINVAL;
+		}
+		vendor = env_get("vendor");
+		if (vendor == NULL) {
+			printk(KERN_ERR "Could not find FDT file environment variable");
+			return -EINVAL;
+		}
+		if (*vendor >= 'A' && *vendor <= 'Z')
+			*vendor += 'a' - 'A';
+		boot_cmd_format = "%s %s#conf-%s_%s";;
+		snprintf(buff, sizeof(buff), boot_cmd_format, boot_command(),
+			kernel_load_address(), vendor, fdt_file);
 	}
+	else { 
+		if (strict_strtoul(dtb_load_address(), 16, &fdt_addr) < 0)
+			return -EINVAL;
 
-	boot_cmd_format = is_fit_image() ? "%s %s#conf-marvell_armada-8040-n366.dtb" :  "%s %s - %s";
+		const char* fdt_param = siklu_fdt_getprop_string(fdt_addr, "/chosen", "bootargs", NULL);
 
-	snprintf(buff, sizeof(buff), boot_cmd_format, boot_command(),
+		if (!IS_ERR(fdt_param)) {
+			old_bootargs = env_get("bootargs");
+			snprintf(formatted_bootargs, sizeof(formatted_bootargs), "%s %s", old_bootargs, fdt_param);
+			printf("SIKLU BOOT: Added DTS-specific bootargs: %s\n", fdt_param);
+			env_set("bootargs", formatted_bootargs);
+		}
+		boot_cmd_format = "%s %s - %s";
+		snprintf(buff, sizeof(buff), boot_cmd_format, boot_command(),
 			kernel_load_address(), dtb_load_address());
+	}
 	
 	ret = run_command(buff, 0);
 	

@@ -81,11 +81,20 @@ char *dtb_path(void)
 	return dtpath;
 }
 
+static bool is_fit_image(void) {
+	char *env = env_get("is_fit_image");
+	return env && simple_strtoul(env, NULL, 10);
+}
+
+void disable_fit_image() {
+	env_set_ulong("is_fit_image", 0UL);
+	env_set_default("fdt_addr_r", NULL);
+}
+
 static char *boot_command(void)
 {
-	char *env = env_get("is_fit_image");
-	if (env && simple_strtoul(env, NULL, 10))
-    	return "bootm";
+	if (is_fit_image())
+		return "bootm";
   	else if (IS_ENABLED(CONFIG_ARM64))
 		return "booti";
 	else
@@ -112,8 +121,7 @@ int load_kernel_image(void) {
 		env_set("bootargs", formatted_bootargs);
 	}
 
-	char *env = env_get("is_fit_image");
-	boot_cmd_format = (env && simple_strtoul(env, NULL, 10)) ? "%s %s" :  "%s %s - %s";
+	boot_cmd_format = is_fit_image() ? "%s %s#conf-marvell_armada-8040-n366.dtb" :  "%s %s - %s";
 
 	snprintf(buff, sizeof(buff), boot_cmd_format, boot_command(),
 			kernel_load_address(), dtb_load_address());

@@ -48,4 +48,10 @@ char *dtb_load_address(void);
  */
 char *dtb_path(void);
 
+/**
+ * Set the environment variables to load from Image
+ * 
+ */
+void disable_fit_image(void);
+
 #endif

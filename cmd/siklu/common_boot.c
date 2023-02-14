@@ -97,15 +97,12 @@ int load_kernel_image(void) {
 			printk(KERN_ERR "Could not find FDT file environment variable");
 			return -EINVAL;
 		}
-		vendor = env_get("vendor");
+		vendor = env_get("fdtvendor");
 		if (vendor == NULL) {
 			printk(KERN_ERR "Could not find FDT file environment variable");
 			return -EINVAL;
 		}
-		if (*vendor >= 'A' && *vendor <= 'Z')
-			*vendor += 'a' - 'A';
-		boot_cmd_format = "%s %s#conf-%s_%s";;
-		snprintf(buff, sizeof(buff), boot_cmd_format, boot_command(),
+		snprintf(buff, sizeof(buff), "%s %s#conf-%s_%s", boot_command(),
 			kernel_load_address(), vendor, fdt_file);
 	}
 	else { 
@@ -120,8 +117,7 @@ int load_kernel_image(void) {
 			printf("SIKLU BOOT: Added DTS-specific bootargs: %s\n", fdt_param);
 			env_set("bootargs", formatted_bootargs);
 		}
-		boot_cmd_format = "%s %s - %s";
-		snprintf(buff, sizeof(buff), boot_cmd_format, boot_command(),
+		snprintf(buff, sizeof(buff), "%s %s - %s", boot_command(),
 			kernel_load_address(), dtb_load_address());
 	}
 	

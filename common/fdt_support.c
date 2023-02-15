@@ -296,10 +296,14 @@ int fdt_chosen(void *fdt)
 	if (str) {
 		dtb_bootargs = fdt_getprop(fdt, nodeoffset, "bootargs",
 		 					NULL);
-		bootline_len = dtb_bootargs ? snprintf(bootline, sizeof(bootline),
-										"%s %s", str, dtb_bootargs) 
-									: strlen(str);
-		err = fdt_setprop(fdt, nodeoffset, "bootargs", bootline,
+		if (dtb_bootargs) {
+			bootline_len = snprintf(bootline, sizeof(bootline),
+										"%s %s", str, dtb_bootargs);
+			str = bootline;
+		}
+		else
+			bootline_len = strlen(str);
+		err = fdt_setprop(fdt, nodeoffset, "bootargs", str,
 				  bootline_len + 1);
 		if (err < 0) {
 			printf("WARNING: could not set bootargs %s.\n",

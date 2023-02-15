@@ -32,7 +32,7 @@ char *kernel_path(void);
 char *kernel_fit_path(void);
 
 /**
- * Updates FIT device tree load address
+ * Set the environment to load from fitImage
  */
 void enable_fit_image(void);
 
@@ -49,8 +49,7 @@ char *dtb_load_address(void);
 char *dtb_path(void);
 
 /**
- * Set the environment variables to load from Image
- * 
+ * Set the environment to load from Image
  */
 void disable_fit_image(void);
 

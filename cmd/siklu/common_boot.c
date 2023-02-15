@@ -40,7 +40,6 @@ char *kernel_fit_path(void) {
 	return BOOT_DIR "/fitImage";
 }
 
-
 char *dtb_load_address(void)
 {
 	char *env = env_get("fdt_addr_r");
@@ -57,7 +56,8 @@ char *dtb_path(void)
 	return dtpath;
 }
 
-static bool is_fit_image(void) {
+static bool is_fit_image(void)
+{
 	char *env = env_get("is_fit_image");
 	return env && simple_strtoul(env, NULL, 10);
 }
@@ -67,7 +67,8 @@ void enable_fit_image(void)
 	env_set_ulong("is_fit_image", 1UL);
 }
 
-void disable_fit_image() {
+void disable_fit_image()
+{
 	env_set_ulong("is_fit_image", 0UL);
 }
 
@@ -86,7 +87,6 @@ int load_kernel_image(void) {
 	int ret;
 	char formatted_bootargs[1024];
 	const char *old_bootargs;
-	char *boot_cmd_format;
 	unsigned int fdt_addr;
 	char *fdt_file;
 	char *vendor;
@@ -102,21 +102,11 @@ int load_kernel_image(void) {
 			printk(KERN_ERR "Could not find FDT file environment variable");
 			return -EINVAL;
 		}
+		/* Boot fitImage with the current conf */
 		snprintf(buff, sizeof(buff), "%s %s#conf-%s_%s", boot_command(),
 			kernel_load_address(), vendor, fdt_file);
 	}
-	else { 
-		if (strict_strtoul(dtb_load_address(), 16, &fdt_addr) < 0)
-			return -EINVAL;
-
-		const char* fdt_param = siklu_fdt_getprop_string(fdt_addr, "/chosen", "bootargs", NULL);
-
-		if (!IS_ERR(fdt_param)) {
-			old_bootargs = env_get("bootargs");
-			snprintf(formatted_bootargs, sizeof(formatted_bootargs), "%s %s", old_bootargs, fdt_param);
-			printf("SIKLU BOOT: Added DTS-specific bootargs: %s\n", fdt_param);
-			env_set("bootargs", formatted_bootargs);
-		}
+	else {
 		snprintf(buff, sizeof(buff), "%s %s - %s", boot_command(),
 			kernel_load_address(), dtb_load_address());
 	}

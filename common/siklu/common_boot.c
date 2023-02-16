@@ -1,8 +1,8 @@
 #include <common.h>
 
 #include "common_boot.h"
-#include "common_fdt.h"
 #include "common_config.h"
+#include "common_fdt.h"
 #include <siklu/siklu_board_generic.h>
 #include <linux/err.h>
 
@@ -43,35 +43,9 @@ char *kernel_path(void)
 		return BOOT_DIR "/zImage";
 }
 
-static void fit_dtb_addr(void)
-{
-	void *fit_hdr = (void *) simple_strtoul(kernel_load_address(), NULL, 16);
-	int fdt_offset;
-	const void *fdt_data;
-	size_t fdt_len;
-
-	if (genimg_get_format(fit_hdr) != IMAGE_FORMAT_FIT)
-		return;
-
-	if (!fit_check_format(fit_hdr))
-		return;
-
-	fdt_offset = fit_image_get_node(fit_hdr, "fdt-qcom_ipq6018-siklu-ctu-100.dtb");
-	if (fdt_offset < 0)
-		return;
-
-	if (fit_image_get_data(fit_hdr, fdt_offset, &fdt_data, &fdt_len))
-		return;
-
-	setenv_hex("fdt_addr_r", (unsigned long) fdt_data);
-}
-
 char *dtb_load_address(void)
 {
 	char *env;
-
-	if (IS_ENABLED(CONFIG_ARCH_IPQ6018))
-		fit_dtb_addr();
 
 	env = getenv("fdt_addr_r");
 
@@ -117,29 +91,10 @@ static const char *product_subtype(void) {
 
 int load_kernel_image(void) {
 	static char buff[256];
-	static char formatted_bootargs[1024];
 	int ret;
-	const char *old_bootargs;
 	char *boot_cmd_format;
-	unsigned long fdt_addr;
 	const char *subtype;
-
-	if (strict_strtoul(dtb_load_address(), 16, &fdt_addr) < 0)
-		return -EINVAL;
-
-	if (fdt_addr == 0)
-		return -EINVAL;
-
-	const char* fdt_param = siklu_fdt_getprop_string((void *)fdt_addr, "/chosen",
-			"bootargs", NULL);
-
-	if (!IS_ERR(fdt_param)) {
-		old_bootargs = getenv("bootargs");
-		snprintf(formatted_bootargs, sizeof(formatted_bootargs), "%s %s", old_bootargs, fdt_param);
-		printf("SIKLU BOOT: Added DTS-specific bootargs: %s\n", fdt_param);
-		setenv("bootargs", formatted_bootargs);
-	}
-
+	
 	if (IS_ENABLED(CONFIG_ARCH_IPQ6018)) {
 		subtype = product_subtype();
 		if (subtype) {
@@ -152,10 +107,6 @@ int load_kernel_image(void) {
 		}
 		snprintf(buff, sizeof(buff), boot_cmd_format, boot_command(),
 			kernel_load_address(), FTD_VENDOR, FTD_FILE, subtype);
-		// TODO: remove when done testing
-		printf("Dry boot command: %s\n", buff);
-		snprintf(buff, sizeof(buff), "%s %s", boot_command(),
-			kernel_load_address());
 	}
 	else {
 		snprintf(buff, sizeof(buff), "%s %s - %s", boot_command(),

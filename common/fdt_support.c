@@ -291,6 +291,9 @@ int fdt_chosen(void *fdt)
 	int   nodeoffset;
 	int   err;
 	char  *str;		/* used to set string properties */
+	const char *dtb_bootargs;
+	static char bootline[1024];
+	int bootline_len;
 
 	err = fdt_check_header(fdt);
 	if (err < 0) {
@@ -305,13 +308,23 @@ int fdt_chosen(void *fdt)
 
 	str = getenv("bootargs");
 	if (str) {
+		dtb_bootargs = fdt_getprop(fdt, nodeoffset, "bootargs",
+		 					NULL);
+		if (dtb_bootargs) {
+			bootline_len = snprintf(bootline, sizeof(bootline),
+										"%s %s", str, dtb_bootargs);
+			str = bootline;
+		}
+		else
+			bootline_len = strlen(str);
 		err = fdt_setprop(fdt, nodeoffset, "bootargs", str,
-				  strlen(str) + 1);
+				  bootline_len + 1);
 		if (err < 0) {
 			printf("WARNING: could not set bootargs %s.\n",
 			       fdt_strerror(err));
 			return err;
 		}
+		setenv("bootargs", bootline);
 	}
 
 	return fdt_fixup_stdout(fdt, nodeoffset);

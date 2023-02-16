@@ -2,10 +2,14 @@
 
 #include "common_boot.h"
 #include "common_fdt.h"
+#include "common_config.h"
 #include <siklu/siklu_board_generic.h>
 #include <linux/err.h>
 
 #define BOOT_DIR "/boot"
+#define FTD_VENDOR "qcom"
+#define FTD_FILE "ipq6018-siklu-ctu-100"
+#define PROP_PRODUCT_SUBTYPE "SE_product_subtype"
 
 void setup_bootargs(const char *bootargs) {
 	static char formatted_bootargs[1024];
@@ -93,6 +97,24 @@ static char *boot_command(void)
 		return "bootz";
 }
 
+static const char *product_subtype(void) {
+	void *siklu_device_config;
+	const char *subtype;
+	siklu_device_config = siklu_read_fdt_from_mtd_part(CONFIG_SIKLU_CONFIG_MTD_PART);
+	if (!siklu_device_config) {
+		printk(KERN_ERR "Could not read siklu device config from \"%s\"\n",
+				CONFIG_SIKLU_BANK_MGMT_MTD_PART);
+		return NULL;
+	}
+	subtype = siklu_fdt_getprop_string(siklu_device_config, "/", PROP_PRODUCT_SUBTYPE, NULL);
+	if (IS_ERR(subtype)) {
+		printf("SIKLU_BOOT: Could not read " PROP_PRODUCT_SUBTYPE "\n");
+		subtype = NULL;
+	}
+	free(siklu_device_config);
+	return subtype;
+}
+
 int load_kernel_image(void) {
 	static char buff[256];
 	static char formatted_bootargs[1024];
@@ -100,6 +122,7 @@ int load_kernel_image(void) {
 	const char *old_bootargs;
 	char *boot_cmd_format;
 	unsigned long fdt_addr;
+	const char *subtype;
 
 	if (strict_strtoul(dtb_load_address(), 16, &fdt_addr) < 0)
 		return -EINVAL;
@@ -117,13 +140,27 @@ int load_kernel_image(void) {
 		setenv("bootargs", formatted_bootargs);
 	}
 
-	if (IS_ENABLED(CONFIG_ARCH_IPQ6018))
-		boot_cmd_format = "%s %s";
-	else
-		boot_cmd_format = "%s %s - %s";
-
-	snprintf(buff, sizeof(buff), boot_cmd_format, boot_command(),
+	if (IS_ENABLED(CONFIG_ARCH_IPQ6018)) {
+		subtype = product_subtype();
+		if (subtype) {
+			boot_cmd_format = "%s %s#conf-%s_%s-%s.dtb";
+			printf("SIKLU BOOT: Using product subtype %s\n", subtype);
+		}
+		else {
+			boot_cmd_format = "%s %s#conf-%s_%s.dtb";
+			printf("SIKLU BOOT: Using default product subtype\n");
+		}
+		snprintf(buff, sizeof(buff), boot_cmd_format, boot_command(),
+			kernel_load_address(), FTD_VENDOR, FTD_FILE, subtype);
+		// TODO: remove when done testing
+		printf("Dry boot command: %s\n", buff);
+		snprintf(buff, sizeof(buff), "%s %s", boot_command(),
+			kernel_load_address());
+	}
+	else {
+		snprintf(buff, sizeof(buff), "%s %s - %s", boot_command(),
 			kernel_load_address(), dtb_load_address());
+	}
 	
 	ret = run_command(buff, 0);
 	

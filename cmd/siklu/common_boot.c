@@ -31,13 +31,11 @@ char *kernel_load_address(void)
 
 char *kernel_path(void)
 {
-	if (IS_ENABLED(CONFIG_ARM64))
-		return BOOT_DIR "/Image";
-	else
-		return BOOT_DIR "/zImage";
+	return BOOT_DIR "/Image";
 }
 
-char *kernel_fit_path(void) {
+char *kernel_fit_path(void)
+{
 	return BOOT_DIR "/fitImage";
 }
 
@@ -75,12 +73,7 @@ void disable_fit_image()
 
 static char *boot_command(void)
 {
-	if (is_fit_image())
-		return "bootm";
-	else if	(IS_ENABLED(CONFIG_ARM64))
-		return "booti";
-	else
-		return "bootz";
+	return is_fit_image() ? "bootm" : "booti";
 }
 
 int load_kernel_image(void) {

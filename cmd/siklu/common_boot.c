@@ -6,6 +6,7 @@
 #include <linux/err.h>
 
 #define BOOT_DIR "/boot"
+#define VENDOR "marvell"
 
 void setup_bootargs(const char *bootargs) {
 	char formatted_bootargs[1024];
@@ -76,7 +77,7 @@ static char *boot_command(void)
 {
 	if (is_fit_image())
 		return "bootm";
-  	else if	(IS_ENABLED(CONFIG_ARM64))
+	else if	(IS_ENABLED(CONFIG_ARM64))
 		return "booti";
 	else
 		return "bootz";
@@ -97,14 +98,10 @@ int load_kernel_image(void) {
 			printk(KERN_ERR "Could not find FDT file environment variable");
 			return -EINVAL;
 		}
-		vendor = env_get("fdtvendor");
-		if (vendor == NULL) {
-			printk(KERN_ERR "Could not find FDT file environment variable");
-			return -EINVAL;
-		}
-		/* Boot fitImage with the current conf */
+		/* Boot fitImage with the current conf by the format:
+		bootm <kernel address>#conf-<vendor>_<FTD file name> */
 		snprintf(buff, sizeof(buff), "%s %s#conf-%s_%s", boot_command(),
-			kernel_load_address(), vendor, fdt_file);
+			kernel_load_address(), VENDOR, fdt_file);
 	}
 	else {
 		snprintf(buff, sizeof(buff), "%s %s - %s", boot_command(),

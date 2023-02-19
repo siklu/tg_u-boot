@@ -6,7 +6,9 @@
 #include <siklu/siklu_board_generic.h>
 #include <linux/err.h>
 
+#define BOOT_COMMAND "bootm"
 #define BOOT_DIR "/boot"
+#define KERNEL_PATH BOOT_DIR"/fitImage"
 #define FTD_VENDOR "qcom"
 #define FTD_FILE "ipq6018-siklu-ctu-100"
 #define PROP_PRODUCT_SUBTYPE "SE_product_subtype"
@@ -35,12 +37,7 @@ char *kernel_load_address(void)
 
 char *kernel_path(void)
 {
-	if (IS_ENABLED(CONFIG_ARCH_IPQ6018))
-		return BOOT_DIR "/fitImage";
-	else if (IS_ENABLED(CONFIG_ARM64))
-		return BOOT_DIR "/Image";
-	else
-		return BOOT_DIR "/zImage";
+	return KERNEL_PATH;
 }
 
 char *dtb_load_address(void)
@@ -59,16 +56,6 @@ char *dtb_path(void)
 	snprintf(dtpath, sizeof(dtpath), BOOT_DIR "/%s", getenv("fdtfile"));
 
 	return dtpath;
-}
-
-static char *boot_command(void)
-{
-	if (IS_ENABLED(CONFIG_ARCH_IPQ6018))
-		return "bootm";
-	else if (IS_ENABLED(CONFIG_ARM64))
-		return "booti";
-	else
-		return "bootz";
 }
 
 static const char *product_subtype(void) {
@@ -95,23 +82,17 @@ int load_kernel_image(void) {
 	char *boot_cmd_format;
 	const char *subtype;
 	
-	if (IS_ENABLED(CONFIG_ARCH_IPQ6018)) {
-		subtype = product_subtype();
-		if (subtype) {
-			boot_cmd_format = "%s %s#conf-%s_%s-%s.dtb";
-			printf("SIKLU BOOT: Using product subtype %s\n", subtype);
-		}
-		else {
-			boot_cmd_format = "%s %s#conf-%s_%s.dtb";
-			printf("SIKLU BOOT: Using default product subtype\n");
-		}
-		snprintf(buff, sizeof(buff), boot_cmd_format, boot_command(),
-			kernel_load_address(), FTD_VENDOR, FTD_FILE, subtype);
+	subtype = product_subtype();
+	if (subtype) {
+		boot_cmd_format = "%s %s#conf-%s_%s-%s.dtb";
+		printf("SIKLU BOOT: Using product subtype %s\n", subtype);
 	}
 	else {
-		snprintf(buff, sizeof(buff), "%s %s - %s", boot_command(),
-			kernel_load_address(), dtb_load_address());
+		boot_cmd_format = "%s %s#conf-%s_%s.dtb";
+		printf("SIKLU BOOT: Using default product subtype\n");
 	}
+	snprintf(buff, sizeof(buff), boot_cmd_format, BOOT_COMMAND,
+		kernel_load_address(), FTD_VENDOR, FTD_FILE, subtype);
 	
 	ret = run_command(buff, 0);
 	

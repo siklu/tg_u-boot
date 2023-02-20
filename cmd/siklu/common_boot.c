@@ -6,6 +6,7 @@
 #include <linux/err.h>
 
 #define BOOT_DIR "/boot"
+#define VENDOR "marvell"
 
 void setup_bootargs(const char *bootargs) {
 	char formatted_bootargs[1024];
@@ -30,15 +31,19 @@ char *kernel_load_address(void)
 
 char *kernel_path(void)
 {
-	if (IS_ENABLED(CONFIG_ARM64))
-		return BOOT_DIR "/Image";
-	else
-		return BOOT_DIR "/zImage";
+	return BOOT_DIR "/Image";
+}
+
+char *kernel_fit_path(void)
+{
+	return BOOT_DIR "/fitImage";
 }
 
 char *dtb_load_address(void)
 {
-	return env_get("fdt_addr_r");
+	char *env = env_get("fdt_addr_r");
+
+	return env ? env : "0";
 }
 
 char *dtb_path(void)
@@ -50,12 +55,25 @@ char *dtb_path(void)
 	return dtpath;
 }
 
+static bool is_fit_image(void)
+{
+	char *env = env_get("is_fit_image");
+	return env && simple_strtoul(env, NULL, 10);
+}
+
+void enable_fit_image(void)
+{
+	env_set_ulong("is_fit_image", 1UL);
+}
+
+void disable_fit_image()
+{
+	env_set_ulong("is_fit_image", 0UL);
+}
+
 static char *boot_command(void)
 {
-	if (IS_ENABLED(CONFIG_ARM64))
-		return "booti";
-	else
-		return "bootz";
+	return is_fit_image() ? "bootm" : "booti";
 }
 
 int load_kernel_image(void) {
@@ -64,21 +82,24 @@ int load_kernel_image(void) {
 	char formatted_bootargs[1024];
 	const char *old_bootargs;
 	unsigned int fdt_addr;
+	char *fdt_file;
+	char *vendor;
 
-	if (strict_strtoul(dtb_load_address(), 16, &fdt_addr) < 0)
-		return -EINVAL;
-
-	const char* fdt_param = siklu_fdt_getprop_string(fdt_addr, "/chosen", "bootargs", NULL);
-
-	if (!IS_ERR(fdt_param)) {
-		old_bootargs = env_get("bootargs");
-		snprintf(formatted_bootargs, sizeof(formatted_bootargs), "%s %s", old_bootargs, fdt_param);
-		printf("SIKLU BOOT: Added DTS-specific bootargs: %s\n", fdt_param);
-		env_set("bootargs", formatted_bootargs);
+	if (is_fit_image()) {
+		fdt_file = env_get("fdtfile");
+		if (fdt_file == NULL) {
+			printk(KERN_ERR "Could not find FDT file environment variable");
+			return -EINVAL;
+		}
+		/* Boot fitImage with the current conf by the format:
+		bootm <kernel address>#conf-<vendor>_<FTD file name> */
+		snprintf(buff, sizeof(buff), "%s %s#conf-%s_%s", boot_command(),
+			kernel_load_address(), VENDOR, fdt_file);
 	}
-
-	snprintf(buff, sizeof(buff), "%s %s - %s", boot_command(),
+	else {
+		snprintf(buff, sizeof(buff), "%s %s - %s", boot_command(),
 			kernel_load_address(), dtb_load_address());
+	}
 	
 	ret = run_command(buff, 0);
 	

@@ -47,9 +47,14 @@ static int load_from_ubifs(void) {
 	
 	ret = ubifs_load(kernel_path(), kernel_addr, 0);
 	if (ret) {
-		printk(KERN_ERR "Failed to load %s\n", kernel_path());
+		enable_fit_image();
+		ret = ubifs_load(kernel_fit_path(), kernel_addr, 0);
+		if (ret)
+			printk(KERN_ERR "Failed to load both %s and %s\n", kernel_path(), kernel_fit_path());
 		return ret;
 	}
+
+	disable_fit_image();
 
 	ret = ubifs_load(dtb_path(), dtb_addr, 0);
 	if (ret) {

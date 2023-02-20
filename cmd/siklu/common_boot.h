@@ -26,6 +26,17 @@ char *kernel_load_address(void);
 char *kernel_path(void);
 
 /**
+ * Kernel fit file path
+ * @return path to kernel fit image location on filesystem
+ */
+char *kernel_fit_path(void);
+
+/**
+ * Set the environment to load from fitImage
+ */
+void enable_fit_image(void);
+
+/**
  * Device tree load address
  * @return hex string of DT load address
  */
@@ -36,5 +47,10 @@ char *dtb_load_address(void);
  * @return path to dtb file location on filesystem
  */
 char *dtb_path(void);
+
+/**
+ * Set the environment to load from Image
+ */
+void disable_fit_image(void);
 
 #endif

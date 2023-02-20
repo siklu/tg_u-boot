@@ -3,6 +3,8 @@
  * Copyright (C) 2016 Stefan Roese <sr@denx.de>
  */
 
+#include <linux/sizes.h>
+
 #ifndef _CONFIG_MVEBU_ARMADA_8K_H
 #define _CONFIG_MVEBU_ARMADA_8K_H
 
@@ -43,6 +45,7 @@
 #define CONFIG_SYS_MEMTEST_END	0x00ffffff	/*(_16M -1) */
 #define CONFIG_SYS_RESET_ADDRESS 0xffff0000	/* Rst Vector Adr */
 #define CONFIG_SYS_MAXARGS	32	/* max number of command args */
+#define CONFIG_SYS_BOOTM_LEN SZ_64M
 
 /* No one wants to load the system with dhcp */
 #define CONFIG_SYS_AUTOLOAD "no"

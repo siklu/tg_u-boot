@@ -1,11 +1,17 @@
 #include <common.h>
 
 #include "common_boot.h"
+#include "common_config.h"
 #include "common_fdt.h"
 #include <siklu/siklu_board_generic.h>
 #include <linux/err.h>
 
+#define BOOT_COMMAND "bootm"
 #define BOOT_DIR "/boot"
+#define KERNEL_PATH BOOT_DIR"/fitImage"
+#define FTD_VENDOR "qcom"
+#define FTD_FILE "ipq6018-siklu-ctu-100"
+#define PROP_PRODUCT_SUBTYPE "SE_product_subtype"
 
 void setup_bootargs(const char *bootargs) {
 	static char formatted_bootargs[1024];
@@ -31,43 +37,12 @@ char *kernel_load_address(void)
 
 char *kernel_path(void)
 {
-	if (IS_ENABLED(CONFIG_ARCH_IPQ6018))
-		return BOOT_DIR "/fitImage";
-	else if (IS_ENABLED(CONFIG_ARM64))
-		return BOOT_DIR "/Image";
-	else
-		return BOOT_DIR "/zImage";
-}
-
-static void fit_dtb_addr(void)
-{
-	void *fit_hdr = (void *) simple_strtoul(kernel_load_address(), NULL, 16);
-	int fdt_offset;
-	const void *fdt_data;
-	size_t fdt_len;
-
-	if (genimg_get_format(fit_hdr) != IMAGE_FORMAT_FIT)
-		return;
-
-	if (!fit_check_format(fit_hdr))
-		return;
-
-	fdt_offset = fit_image_get_node(fit_hdr, "fdt-qcom_ipq6018-siklu-ctu-100.dtb");
-	if (fdt_offset < 0)
-		return;
-
-	if (fit_image_get_data(fit_hdr, fdt_offset, &fdt_data, &fdt_len))
-		return;
-
-	setenv_hex("fdt_addr_r", (unsigned long) fdt_data);
+	return KERNEL_PATH;
 }
 
 char *dtb_load_address(void)
 {
 	char *env;
-
-	if (IS_ENABLED(CONFIG_ARCH_IPQ6018))
-		fit_dtb_addr();
 
 	env = getenv("fdt_addr_r");
 
@@ -83,47 +58,41 @@ char *dtb_path(void)
 	return dtpath;
 }
 
-static char *boot_command(void)
-{
-	if (IS_ENABLED(CONFIG_ARCH_IPQ6018))
-		return "bootm";
-	else if (IS_ENABLED(CONFIG_ARM64))
-		return "booti";
-	else
-		return "bootz";
+static const char *product_subtype(void) {
+	void *siklu_device_config;
+	const char *subtype;
+	siklu_device_config = siklu_read_fdt_from_mtd_part(CONFIG_SIKLU_CONFIG_MTD_PART);
+	if (!siklu_device_config) {
+		printk(KERN_ERR "Could not read siklu device config from \"%s\"\n",
+				CONFIG_SIKLU_BANK_MGMT_MTD_PART);
+		return NULL;
+	}
+	subtype = siklu_fdt_getprop_string(siklu_device_config, "/", PROP_PRODUCT_SUBTYPE, NULL);
+	if (IS_ERR(subtype)) {
+		printf("SIKLU_BOOT: Could not read " PROP_PRODUCT_SUBTYPE "\n");
+		subtype = NULL;
+	}
+	free(siklu_device_config);
+	return subtype;
 }
 
 int load_kernel_image(void) {
 	static char buff[256];
-	static char formatted_bootargs[1024];
 	int ret;
-	const char *old_bootargs;
 	char *boot_cmd_format;
-	unsigned long fdt_addr;
-
-	if (strict_strtoul(dtb_load_address(), 16, &fdt_addr) < 0)
-		return -EINVAL;
-
-	if (fdt_addr == 0)
-		return -EINVAL;
-
-	const char* fdt_param = siklu_fdt_getprop_string((void *)fdt_addr, "/chosen",
-			"bootargs", NULL);
-
-	if (!IS_ERR(fdt_param)) {
-		old_bootargs = getenv("bootargs");
-		snprintf(formatted_bootargs, sizeof(formatted_bootargs), "%s %s", old_bootargs, fdt_param);
-		printf("SIKLU BOOT: Added DTS-specific bootargs: %s\n", fdt_param);
-		setenv("bootargs", formatted_bootargs);
+	const char *subtype;
+	
+	subtype = product_subtype();
+	if (subtype) {
+		boot_cmd_format = "%s %s#conf-%s_%s-%s.dtb";
+		printf("SIKLU BOOT: Using product subtype %s\n", subtype);
 	}
-
-	if (IS_ENABLED(CONFIG_ARCH_IPQ6018))
-		boot_cmd_format = "%s %s";
-	else
-		boot_cmd_format = "%s %s - %s";
-
-	snprintf(buff, sizeof(buff), boot_cmd_format, boot_command(),
-			kernel_load_address(), dtb_load_address());
+	else {
+		boot_cmd_format = "%s %s#conf-%s_%s.dtb";
+		printf("SIKLU BOOT: Using default product subtype\n");
+	}
+	snprintf(buff, sizeof(buff), boot_cmd_format, BOOT_COMMAND,
+		kernel_load_address(), FTD_VENDOR, FTD_FILE, subtype);
 	
 	ret = run_command(buff, 0);
 	

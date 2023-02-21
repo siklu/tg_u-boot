@@ -2,11 +2,13 @@
 
 #include "common_boot.h"
 #include "common_fdt.h"
+#include "common_config.h"
 #include <siklu/siklu_board_generic.h>
 #include <linux/err.h>
 
 #define BOOT_DIR "/boot"
 #define VENDOR "marvell"
+#define PROP_PRODUCT_SUBTYPE "SE_product_subtype"
 
 void setup_bootargs(const char *bootargs) {
 	char formatted_bootargs[1024];
@@ -76,25 +78,49 @@ static char *boot_command(void)
 	return is_fit_image() ? "bootm" : "booti";
 }
 
+static const char *product_subtype(void) {
+	void *siklu_device_config;
+	const char *subtype;
+	siklu_device_config = siklu_read_fdt_from_mtd_part(CONFIG_SIKLU_CONFIG_MTD_PART);
+	if (!siklu_device_config) {
+		printk(KERN_ERR "Could not read siklu device config from \"%s\"\n",
+				CONFIG_SIKLU_BANK_MGMT_MTD_PART);
+		return NULL;
+	}
+	subtype = siklu_fdt_getprop_string(siklu_device_config, "/", PROP_PRODUCT_SUBTYPE, NULL);
+	if (IS_ERR(subtype)) {
+		printf("SIKLU_BOOT: Could not read " PROP_PRODUCT_SUBTYPE "\n");
+		subtype = NULL;
+	}
+	free(siklu_device_config);
+	return subtype;
+}
+
 int load_kernel_image(void) {
 	char buff[256];
 	int ret;
 	char formatted_bootargs[1024];
+	char *boot_cmd_format;
 	const char *old_bootargs;
 	unsigned int fdt_addr;
 	char *fdt_file;
+	const char *subtype;
 	char *vendor;
 
 	if (is_fit_image()) {
-		fdt_file = env_get("fdtfile");
-		if (fdt_file == NULL) {
-			printk(KERN_ERR "Could not find FDT file environment variable");
-			return -EINVAL;
+		subtype = product_subtype();
+		if (subtype) {
+			boot_cmd_format = "%s %s#conf-%s_%s-%s.dtb";
+			printf("SIKLU BOOT: Using product subtype %s\n", subtype);
+		}
+		else {
+			boot_cmd_format = "%s %s#conf-%s_%s.dtb";
+			printf("SIKLU BOOT: Using default product subtype\n");
 		}
 		/* Boot fitImage with the current conf by the format:
-		bootm <kernel address>#conf-<vendor>_<FTD file name> */
-		snprintf(buff, sizeof(buff), "%s %s#conf-%s_%s", boot_command(),
-			kernel_load_address(), VENDOR, fdt_file);
+		bootm <kernel address>#conf-<vendor>_<FTD file name>[-overlay] */
+		snprintf(buff, sizeof(buff), boot_cmd_format, boot_command(),
+		kernel_load_address(), VENDOR, CONFIG_DEFAULT_DEVICE_TREE, subtype);
 	}
 	else {
 		snprintf(buff, sizeof(buff), "%s %s - %s", boot_command(),

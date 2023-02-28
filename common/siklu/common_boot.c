@@ -79,20 +79,23 @@ static const char *product_subtype(void) {
 int load_kernel_image(void) {
 	static char buff[256];
 	int ret;
-	char *boot_cmd_format;
 	const char *subtype;
 	
 	subtype = product_subtype();
 	if (subtype) {
-		boot_cmd_format = "%s %s#conf-%s_%s-%s.dtb";
 		printf("SIKLU BOOT: Using product subtype %s\n", subtype);
+		/* Boot fitImage with the default device tree and the subtype overlay by the format:
+		bootm <kernel address>#conf-<vendor>_<dtb file name>#conf-<vendor>_<overlay file name> */
+		snprintf(buff, sizeof(buff), "%s %s#conf-%s_%s.dtb#conf-%s_%s.dtbo", BOOT_COMMAND,
+			kernel_load_address(), FTD_VENDOR, FTD_FILE, FTD_VENDOR, subtype);
 	}
 	else {
-		boot_cmd_format = "%s %s#conf-%s_%s.dtb";
 		printf("SIKLU BOOT: Using default product subtype\n");
+		/* Boot fitImage with the default device tree by the format:
+		bootm <kernel address>#conf-<vendor>_<FTD file name> */
+		snprintf(buff, sizeof(buff), "%s %s#conf-%s_%s.dtb", BOOT_COMMAND,
+			kernel_load_address(), FTD_VENDOR, FTD_FILE);
 	}
-	snprintf(buff, sizeof(buff), boot_cmd_format, BOOT_COMMAND,
-		kernel_load_address(), FTD_VENDOR, FTD_FILE, subtype);
 	
 	ret = run_command(buff, 0);
 	

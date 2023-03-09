@@ -81,7 +81,7 @@ static int do_siklu_bubt(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[
 
 U_BOOT_CMD(
 		siklu_bubt,
-		2,
+		3,
 		0,
 		do_siklu_bubt,
 		"siklu_bubt <expected-siklu-version> <file-name>",

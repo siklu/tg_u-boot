@@ -64,12 +64,19 @@ static int do_siklu_bubt(cmd_tbl_t *cmdtp, int flag, int argc, char *const argv[
 	if (argc != 3) {
 		return CMD_RET_USAGE;
 	}
+	expected_siklu_ver = argv[1];
+	file_name = argv[2];
 
 	printf("expected_siklu_ver=%s\n", expected_siklu_ver);
 	printf("file_name=%s\n", file_name);
-	printf("file_name=%s\n", version_string);
+	printf("version_string=%s\n", version_string);
 
 	return CMD_RET_SUCCESS;
+#if 0
+	char cmd[1024];
+	snprintf(cmd, sizeof(cmd), "bubt %s spi tftp", file_name);
+	return run_command(cmd, 0);
+#endif
 }
 
 U_BOOT_CMD(
